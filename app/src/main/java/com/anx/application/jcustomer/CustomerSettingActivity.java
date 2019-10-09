@@ -114,7 +114,6 @@ public class CustomerSettingActivity extends AppCompatActivity {
                         storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri uri) {
-                                //do your stuff- uri.toString() will give you download URL\\
                                 Glide.with(getApplicationContext()).load(uri.toString()).error(R.drawable.ic_default_profile).into(mProfileImage);
                             }
                         });

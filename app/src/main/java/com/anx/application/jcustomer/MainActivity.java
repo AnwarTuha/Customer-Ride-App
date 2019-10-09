@@ -1,10 +1,14 @@
 package com.anx.application.jcustomer;
 
+import android.app.ActivityOptions;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -20,8 +24,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button mLogin, mRegister;
-    private EditText mEmail, mPassword;
+    private Button mLogin;
+    private ImageButton mRegister;
+    private EditText mPhone, mPassword;
+    private TextView tvLogin;
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener firebaseAuthListener;
@@ -47,27 +53,34 @@ public class MainActivity extends AppCompatActivity {
 
         mLogin = findViewById(R.id.login);
         mRegister = findViewById(R.id.register);
-        mEmail = findViewById(R.id.email);
+        mPhone = findViewById(R.id.phone);
         mPassword = findViewById(R.id.password);
+        tvLogin = findViewById(R.id.tvLogin);
 
         // Register User
         mRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final String email = mEmail.getText().toString();
-                final String password = mPassword.getText().toString();
-                mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(MainActivity.this, new OnCompleteListener() {
-                    @Override
-                    public void onComplete(@NonNull Task task) {
-                        if (!task.isSuccessful()){
-                            Toast.makeText(MainActivity.this, "Sign Up Error", Toast.LENGTH_SHORT).show();
-                        } else {
-                            String userId = mAuth.getCurrentUser().getUid();
-                            DatabaseReference current_user_db = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(userId);
-                            current_user_db.setValue(true);
-                        }
-                    }
-                });
+//                final String email = mEmail.getText().toString();
+//                final String password = mPassword.getText().toString();
+//                mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(MainActivity.this, new OnCompleteListener() {
+//                    @Override
+//                    public void onComplete(@NonNull Task task) {
+//                        if (!task.isSuccessful()){
+//                            Toast.makeText(MainActivity.this, "Sign Up Error", Toast.LENGTH_SHORT).show();
+//                        } else {
+//                            String userId = mAuth.getCurrentUser().getUid();
+//                            DatabaseReference current_user_db = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(userId);
+//                            current_user_db.setValue(true);
+//                        }
+//                    }
+//                });
+                Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
+
+                Pair[] pairs = new Pair[1];
+                pairs[0] = new Pair<View, String>(tvLogin, "tvLogin");
+                ActivityOptions activityOptions = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this, pairs);
+                startActivity(intent, activityOptions.toBundle());
             }
         });
 
@@ -75,16 +88,17 @@ public class MainActivity extends AppCompatActivity {
         mLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final String email = mEmail.getText().toString();
-                final String password = mPassword.getText().toString();
-                mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(MainActivity.this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (!task.isSuccessful()){
-                            Toast.makeText(MainActivity.this, "Login Error", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+//                final String email = mEmail.getText().toString();
+//                final String password = mPassword.getText().toString();
+//                mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(MainActivity.this, new OnCompleteListener<AuthResult>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<AuthResult> task) {
+//                        if (!task.isSuccessful()){
+//                            Toast.makeText(MainActivity.this, "Login Error", Toast.LENGTH_SHORT).show();
+//                        }
+//                    }
+//                });
+
             }
         });
     }
