@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".CustomerMapActivity">
 
 
@@ -11,12 +12,12 @@
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
+        android:layout_height="match_parent" />
 
     <RelativeLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@drawable/headerfaded">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -26,30 +27,41 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/logout"
-                android:text="logout"/>
+                android:text="logout"
+                android:background="@drawable/bg_ui"
+                android:textColor="@color/colorWhite"
+                android:layout_margin="5dp"
+                />
             <Button
                 android:layout_weight="1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/history"
-                android:text="history"/>
+                android:text="history"
+                android:textColor="@color/colorWhite"
+                android:background="@drawable/bg_ui"
+                android:layout_margin="5dp"/>
             <Button
                 android:layout_weight="1"
-                android:layout_gravity="end"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/settings"
-                android:text="Settings"/>
+                android:text="Settings"
+                android:textColor="@color/colorWhite"
+                android:background="@drawable/bg_ui"
+                android:layout_margin="5dp"/>
         </LinearLayout>
         <androidx.cardview.widget.CardView
             android:layout_below="@+id/buttons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="20sp">
+            android:layout_margin="20sp"
+            app:cardCornerRadius="30dp">
             <fragment
                 android:id="@+id/place_autocomplete_fragment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                h
                 android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"/>
         </androidx.cardview.widget.CardView>
     </RelativeLayout>
@@ -57,7 +69,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_gravity="bottom">
+        android:layout_gravity="bottom"
+        android:fadingEdge="vertical">
         <LinearLayout
             android:id="@+id/driverInfo"
             android:layout_width="match_parent"
@@ -111,31 +124,32 @@
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="100dp"
             android:orientation="vertical"
-            >
+            android:background="@drawable/footerfaded">
             <RadioGroup
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/radioGroup"
                 android:orientation="horizontal"
-                android:theme="@style/AppTheme">
+                android:theme="@style/AppTheme"
+                android:layout_margin="5dp">
 
                 <RadioButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="JanoTaxi"
-                    android:id="@+id/janoTaxi"/>
+                    android:text="Bajjaj"
+                    android:id="@+id/Bajjaj"/>
                 <RadioButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="JanoVan"
-                    android:id="@+id/janoVan"/>
+                    android:text="Taxi"
+                    android:id="@+id/taxi"/>
                 <RadioButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="JanoCorporate"
-                    android:id="@+id/janoCorporate"/>
+                    android:text="Corporate"
+                    android:id="@+id/corporate"/>
 
             </RadioGroup>
             <Button
@@ -144,7 +158,10 @@
                 android:text="Call Driver"
                 android:id="@+id/request"
                 android:textAllCaps="false"
-                android:layout_gravity="bottom"/>
+                android:layout_gravity="bottom"
+                android:textColor="@color/colorWhite"
+                android:background="@drawable/bg_ui"
+                android:layout_margin="5dp"/>
         </LinearLayout>
 
 

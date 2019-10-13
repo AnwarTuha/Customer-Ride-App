@@ -5,19 +5,28 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Pair;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.PhoneAuthCredential;
+import com.google.firebase.auth.PhoneAuthProvider;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.hbb20.CountryCodePicker;
+
+import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,13 +37,17 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton mRegister;
     private EditText mPhone, mPassword;
     private TextView tvLogin;
+    private CountryCodePicker ccp;
+    private String fullNumber;
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener firebaseAuthListener;
+    private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        FirebaseApp.initializeApp(this);
 
         // Authenticate User
         mAuth = FirebaseAuth.getInstance();
@@ -56,6 +69,8 @@ public class MainActivity extends AppCompatActivity {
         mPhone = findViewById(R.id.phone);
         mPassword = findViewById(R.id.password);
         tvLogin = findViewById(R.id.tvLogin);
+        ccp = findViewById(R.id.ccp);
+
 
         // Register User
         mRegister.setOnClickListener(new View.OnClickListener() {
@@ -98,9 +113,20 @@ public class MainActivity extends AppCompatActivity {
 //                        }
 //                    }
 //                });
+            if (mPhone.getText().toString().trim().isEmpty() || mPhone.getText().toString().trim().length() < 9){
+                mPhone.setError("Valid number is required");
+                mPhone.requestFocus();
+                return;
+            }
 
+            fullNumber = "+" + ccp.getFullNumber() + mPhone.getText().toString().trim();
+            Intent intent = new Intent(MainActivity.this, VerifyPhoneActivity.class);
+            intent.putExtra("phoneNumber", fullNumber);
+            startActivity(intent);
+            return;
             }
         });
+
     }
 
     @Override

@@ -82,11 +82,12 @@
             android:id="@+id/sv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-        android:layout_below="@+id/bgHeader">
+            android:layout_below="@+id/bgHeader">
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:layout_marginTop="45dp">
 
 
             <androidx.cardview.widget.CardView
@@ -111,29 +112,51 @@
                         android:textColor="@color/colorPurple"
                         android:textSize="14sp"/>
 
-                    <EditText
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="text"
-                        android:layout_marginLeft="10dp"
-                        android:layout_marginRight="10dp"
-                        android:id="@+id/phone"/>
+                        android:layout_height="50dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Password"
-                        android:layout_margin="10dp"
-                        android:textStyle="bold"
-                        android:textColor="@color/colorPurple"
-                        android:textSize="14sp"/>
+                        <com.hbb20.CountryCodePicker
+                            android:id="@+id/ccp"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            app:ccp_textSize="16sp"
+                            app:ccp_autoDetectCountry="true"
+                            app:ccp_showFlag="true"
+                            app:ccp_showPhoneCode="true"
+                            app:ccp_showNameCode="false"/>
 
-                    <EditText
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:layout_marginRight="10dp"
-                        android:id="@+id/password"/>
+                        <EditText
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="2"
+                            android:inputType="phone"
+                            android:layout_marginLeft="10dp"
+                            android:layout_marginRight="10dp"
+                            android:hint="Phone number"
+                            android:textSize="16sp"
+                            android:id="@+id/phone"
+                            android:maxLength="10"/>
+
+                    </LinearLayout>
+
+                    <!--<TextView-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:text="Password"-->
+                        <!--android:layout_margin="10dp"-->
+                        <!--android:textStyle="bold"-->
+                        <!--android:textColor="@color/colorPurple"-->
+                        <!--android:textSize="14sp"/>-->
+
+                    <!--<EditText-->
+                        <!--android:layout_width="match_parent"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_marginLeft="10dp"-->
+                        <!--android:layout_marginRight="10dp"-->
+                        <!--android:id="@+id/password"/>-->
 
                 </LinearLayout>
 
@@ -180,25 +203,25 @@
                     android:src="@drawable/ic_add" />
             </RelativeLayout>
 
-            <TextView
-                android:id="@+id/tvForgot"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/cv"
-                android:layout_centerHorizontal="true"
-                android:text="Forgot your password?"
-                android:elevation="5dp"
-                android:layout_marginTop="10dp"
-                android:textSize="14sp" />
+            <!--<TextView-->
+                <!--android:id="@+id/tvForgot"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_below="@+id/cv"-->
+                <!--android:layout_centerHorizontal="true"-->
+                <!--android:text="Forgot your password?"-->
+                <!--android:elevation="5dp"-->
+                <!--android:layout_marginTop="10dp"-->
+                <!--android:textSize="14sp" />-->
 
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:elevation="10dp"
-                android:layout_below="@+id/tvForgot"
+                android:layout_below="@+id/cv"
                 android:layout_alignLeft="@id/cv"
                 android:layout_alignRight="@id/cv"
-                android:text="Login With Google"
+                android:text="or sign-in With Google"
                 android:textAllCaps="false"
                 android:textColor="@color/colorPurple"
                 android:layout_marginLeft="20dp"

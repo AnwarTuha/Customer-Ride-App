@@ -78,6 +78,10 @@
             mUsername = findViewById(R.id.username);
             mPhone = findViewById(R.id.phone);
 
+            String phoneNumber = getIntent().getStringExtra("phoneNumber");
+
+            mPhone.setText(phoneNumber);
+
             // Authenticate User
             mAuth = FirebaseAuth.getInstance();
             firebaseAuthListener = new FirebaseAuth.AuthStateListener() {
@@ -145,6 +149,7 @@
             userInfo.put("name", userName);
             userInfo.put("phone", phone);
             mCustomerDatabase.updateChildren(userInfo);
+
                 if (resultUri != null){
                     final StorageReference filePath = FirebaseStorage.getInstance().getReference().child("profileImage").child(userId);
                     Bitmap bitmap = null;

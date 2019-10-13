@@ -13,14 +13,14 @@
         android:elevation="3dp"
         android:background="@drawable/header_register"
         android:theme="@style/ToolbarTheme"/>
-    
+
     <TextView
         android:id="@+id/tvSignUp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:elevation="10dp"
         android:textColor="@color/colorWhite"
-        android:text="Sign Up"
+        android:text="Verify Phone"
         android:textStyle="bold"
         android:transitionName="tvLogin"
         android:textSize="20sp"
@@ -49,17 +49,15 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginBottom="20dp"
-        android:layout_marginTop="-25dp"
+        android:layout_margin="10dp"
         android:layout_below="@+id/bgHeader"
         android:elevation="5dp">
 
         <RelativeLayout
             android:id="@+id/rlayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="100dp">
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cv"
@@ -74,81 +72,25 @@
                     android:orientation="vertical"
                     android:paddingBottom="50dp">
 
-                    <de.hdodenhof.circleimageview.CircleImageView
-                        android:id="@+id/profileImage"
-                        android:layout_width="60dp"
-                        android:layout_height="60dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/ic_default_profile"
-                        app:civ_border_color="@color/colorPurple"
-                        app:civ_border_width="2dp" />
-
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_margin="10dp"
-                        android:text="Email"
+                        android:text=""
                         android:textColor="@color/colorPurple"
                         android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:id="@+id/info"/>
 
                     <EditText
-                        android:id="@+id/email"
+                        android:hint="SMS code"
+                        android:textSize="16sp"
+                        android:id="@+id/otp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="10dp"
                         android:layout_marginRight="10dp"
                         android:inputType="text" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="10dp"
-                        android:text="Username"
-                        android:textColor="@color/colorPurple"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <EditText
-                        android:id="@+id/username"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:layout_marginRight="10dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="10dp"
-                        android:text="Password"
-                        android:textColor="@color/colorPurple"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <EditText
-                        android:id="@+id/password"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:layout_marginRight="10dp"
-                        android:inputType="textPassword" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="10dp"
-                        android:text="Phone"
-                        android:textColor="@color/colorPurple"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <EditText
-                        android:id="@+id/phone"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:layout_marginRight="10dp"
-                        android:inputType="phone" />
 
                 </LinearLayout>
 
@@ -167,11 +109,11 @@
                 android:layout_marginRight="35dp">
 
                 <Button
-                    android:id="@+id/register"
+                    android:id="@+id/verify"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:elevation="10dp"
-                    android:text="Sign Up"
+                    android:text="Verify"
                     android:textAllCaps="false"
                     android:textColor="@color/colorWhite"
                     android:background="@drawable/bg_ui"/>

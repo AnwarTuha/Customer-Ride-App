@@ -10,6 +10,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
@@ -17,12 +18,14 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RatingBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,7 +44,9 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -71,6 +76,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
     LocationRequest mLocationRequest;
     SupportMapFragment mapFragment;
     PlacesClient placesClient;
+    Marker customMarker;
 
     private FusedLocationProviderClient mFusedLocationClient;
 
@@ -99,7 +105,6 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
         destinationLatLng = new LatLng(0.0, 0.0);
 
         mHistory = findViewById(R.id.history);
@@ -109,9 +114,8 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
         mDriverPhone = (TextView) findViewById(R.id.driverPhone);
         mDriverCar = (TextView) findViewById(R.id.driverCar);
         mRadioGroup = findViewById(R.id.radioGroup);
-        mRadioGroup.check(R.id.janoTaxi);
+        mRadioGroup.check(R.id.Bajjaj);
         mRatingBar = findViewById(R.id.ratingBar);
-
         String api_key = "AIzaSyBSVxzRAiYvKc-3-4AaKi8G0-tht285aHA";// for searching destination
 
         if (!Places.isInitialized()){
@@ -126,6 +130,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
             public void onClick(View v) {
                 FirebaseAuth.getInstance().signOut();
                 Intent intent = new Intent(CustomerMapActivity.this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
                 finish();
                 return;
@@ -466,6 +471,16 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+//        try{
+//            boolean success = googleMap.setMapStyle(
+//                    MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle));
+//
+//            if (!success){
+//                Toast.makeText(this, "Style parsing failed", Toast.LENGTH_SHORT).show();
+//            }
+//        } catch (Resources.NotFoundException e){
+//            Toast.makeText(this, ""+e, Toast.LENGTH_SHORT).show();
+//        }
 
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(1000);
@@ -474,14 +489,13 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
-
+                mMap.setMyLocationEnabled(true);
             } else {
                 checkLocationPermission();
             }
         }
 
         mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.myLooper());
-        mMap.setMyLocationEnabled(true);
     }
 
     LocationCallback mLocationCallback = new LocationCallback() {
@@ -493,7 +507,11 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                     LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                     Log.i("Hello", "Location Changed");
                     mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-                    mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+                    mMap.animateCamera(CameraUpdateFactory.zoomTo(18));
+//                    mMap.addMarker(new MarkerOptions()
+////                        .position(latLng)
+////                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
+////                        .title("You"));
 
                     if (!getDriversAroundStarted){
                         getDriversAround();
