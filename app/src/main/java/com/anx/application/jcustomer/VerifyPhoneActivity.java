@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -38,7 +39,8 @@ public class VerifyPhoneActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener firebaseAuthListener;
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallback;
-    private PhoneAuthProvider.ForceResendingToken resendToken;
+
+    private int APP_START = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,15 +66,7 @@ public class VerifyPhoneActivity extends AppCompatActivity {
 
         phoneNumber = getIntent().getStringExtra("phoneNumber");
         info.setText("Code sent to " + phoneNumber +" via SMS, enter the code below");
-
-//        PhoneAuthProvider.getInstance().verifyPhoneNumber(
-//                phoneNumber,
-//                60,
-//                TimeUnit.SECONDS,
-//                VerifyPhoneActivity.this,
-//                mCallback
-//        );
-
+        Toast.makeText(VerifyPhoneActivity.this, "Code is Sent", Toast.LENGTH_SHORT).show();
 
         verify.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -125,7 +119,6 @@ public class VerifyPhoneActivity extends AppCompatActivity {
                 super.onCodeSent(s, forceResendingToken);
                 btnType = 1;
                 verificationId = s;
-                resendToken = forceResendingToken;
                 verify.setText("Verify Code");
             }
         };
@@ -141,13 +134,13 @@ public class VerifyPhoneActivity extends AppCompatActivity {
                         if (task.isSuccessful()){
                             Toast.makeText(VerifyPhoneActivity.this, "Sign in with credential Successful", Toast.LENGTH_SHORT).show();
                             boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
+                            Log.e("isNew", "" + isNew);
                             if (isNew){
                                 Toast.makeText(VerifyPhoneActivity.this, "New User", Toast.LENGTH_SHORT).show();
                                 Intent intent = new Intent(VerifyPhoneActivity.this, RegisterActivity.class);
                                 intent.putExtra("phoneNumber", phoneNumber);
                                 startActivity(intent);
                                 finish();
-                                return;
                             } else {
                                 Toast.makeText(VerifyPhoneActivity.this, "Nebar user", Toast.LENGTH_SHORT).show();
                                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -155,7 +148,6 @@ public class VerifyPhoneActivity extends AppCompatActivity {
                                     Intent intent = new Intent(VerifyPhoneActivity.this, CustomerMapActivity.class);
                                     startActivity(intent);
                                     finish();
-                                    return;
                                 }
                             }
                         } else {
@@ -172,18 +164,18 @@ public class VerifyPhoneActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        final String phoneNumber = getIntent().getStringExtra("phoneNumber");
+        if (APP_START == 0){
+            final String phoneNumber = getIntent().getStringExtra("phoneNumber");
 
-        PhoneAuthProvider.getInstance().verifyPhoneNumber(
-                phoneNumber,
-                60,
-                TimeUnit.SECONDS,
-                VerifyPhoneActivity.this,
-                mCallback,
-                resendToken
-        );
-        Toast.makeText(VerifyPhoneActivity.this, "Code is Sent", Toast.LENGTH_SHORT).show();
-
+            PhoneAuthProvider.getInstance().verifyPhoneNumber(
+                    phoneNumber,
+                    60,
+                    TimeUnit.SECONDS,
+                    VerifyPhoneActivity.this,
+                    mCallback
+            );
+            APP_START = 1;
+        }
     }
 
     @Override

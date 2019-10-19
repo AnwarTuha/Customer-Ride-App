@@ -41,4 +41,10 @@
         android:id="@+id/back"
         android:text="Back"
         android:textAllCaps="false"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/delete"
+        android:text="Delete Account"
+        android:textAllCaps="false"/>
 </LinearLayout>

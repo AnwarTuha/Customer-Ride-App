@@ -91,37 +91,37 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
         historyRideInfoDb.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()){
-                    for (DataSnapshot child : dataSnapshot.getChildren()){
-                        if (child.getKey().equals("customer")){
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot child : dataSnapshot.getChildren()) {
+                        if (child.getKey().equals("customer")) {
                             customerId = child.getValue().toString();
-                            if (!(customerId.equals(currentUserId))){
+                            if (!(customerId.equals(currentUserId))) {
                                 userDriverOrCustomer = "Drivers";
                                 getUserInformation("Customers", customerId);
                             }
                         }
-                        if (child.getKey().equals("driver")){
+                        if (child.getKey().equals("driver")) {
                             driverId = child.getValue().toString();
-                            if (!(driverId.equals(currentUserId))){
+                            if (!(driverId.equals(currentUserId))) {
                                 userDriverOrCustomer = "Customers";
                                 getUserInformation("Drivers", driverId);
                                 displayCustomerRelatedObjects();
                             }
                         }
-                        if (child.getKey().equals("timeStamp")){
+                        if (child.getKey().equals("timeStamp")) {
                             rideDate.setText("Date of Journey: " + getDate(Long.valueOf(child.getValue().toString())));
                         }
-                        if (child.getKey().equals("rating")){
+                        if (child.getKey().equals("rating")) {
                             mRatingBar.setRating(Integer.valueOf(child.getValue().toString()));
                         }
-                        if (child.getKey().equals("destination")){
+                        if (child.getKey().equals("destination")) {
                             rideLocation.setText("Destination: " + child.getValue().toString());
                         }
-                        if (child.getKey().equals("location")){
+                        if (child.getKey().equals("location")) {
                             pickupLatLng = new LatLng(Double.valueOf(child.child("from").child("lat").getValue().toString()), Double.valueOf(child.child("from").child("lng").getValue().toString()));
 
                             destinationLatLng = new LatLng(Double.valueOf(child.child("to").child("lat").getValue().toString()), Double.valueOf(child.child("to").child("lng").getValue().toString()));
-                            if (destinationLatLng != new LatLng(0, 0)){
+                            if (destinationLatLng != new LatLng(0, 0)) {
                                 getRouteToMarker();
                             }
                         }
@@ -153,17 +153,17 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
         mUserDb.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()){
+                if (dataSnapshot.exists()) {
                     Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
-                    if (map.get("name") != null){
+                    if (map.get("name") != null) {
                         userName.setText(map.get("name").toString());
                     }
-                    if (map.get("phone") != null){
+                    if (map.get("phone") != null) {
                         userPhone.setText(map.get("phone").toString());
                     }
-                    if (map.get("profileImageUrl") != null){
-                        Log.i("anwar", ""+map.get("profileImageUrl"));
-                        StorageReference storageReference =  FirebaseStorage.getInstance().getReference().child("profileImage").child(customerId);
+                    if (map.get("profileImageUrl") != null) {
+                        Log.i("anwar", "" + map.get("profileImageUrl"));
+                        StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("profileImage").child(customerId);
                         storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri uri) {
@@ -183,7 +183,7 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
 
     private String getDate(Long timeStamp) {
         Calendar cal = Calendar.getInstance(Locale.getDefault());
-        cal.setTimeInMillis(timeStamp*1000);
+        cal.setTimeInMillis(timeStamp * 1000);
         String date = DateFormat.format("dd-MM-yyyy hh:mm", cal).toString();
         return date;
     }
@@ -232,7 +232,7 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
         mMap.addMarker(new MarkerOptions().position(pickupLatLng).title("Pickup Location"));
         mMap.addMarker(new MarkerOptions().position(destinationLatLng).title("Destination"));
 
-        if(polylines.size()>0) {
+        if (polylines.size() > 0) {
             for (Polyline poly : polylines) {
                 poly.remove();
             }
@@ -240,7 +240,7 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
 
         polylines = new ArrayList<>();
         //add route(s) to the map.
-        for (int i = 0; i <route.size(); i++) {
+        for (int i = 0; i < route.size(); i++) {
 
             //In case of more than 5 alternative routes
             int colorIndex = i % COLORS.length;
@@ -252,7 +252,7 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
             Polyline polyline = mMap.addPolyline(polyOptions);
             polylines.add(polyline);
 
-            Toast.makeText(getApplicationContext(),"Route "+ (i+1) +": distance - "+ route.get(i).getDistanceValue()+": duration - "+ route.get(i).getDurationValue(),Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Route " + (i + 1) + ": distance - " + route.get(i).getDistanceValue() + ": duration - " + route.get(i).getDurationValue(), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -260,13 +260,13 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
     public void onRoutingCancelled() {
     }
 
-    private void erasePolyLines(){
-        for (Polyline line : polylines){
-            if (line != null){
+    private void erasePolyLines() {
+        for (Polyline line : polylines) {
+            if (line != null) {
                 line.remove();
             }
         }
-        if (polylines != null){
+        if (polylines != null) {
             polylines.clear();
         }
     }

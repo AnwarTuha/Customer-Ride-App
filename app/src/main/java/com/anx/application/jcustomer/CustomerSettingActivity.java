@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,10 +18,17 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.PhoneAuthCredential;
+import com.google.firebase.auth.PhoneAuthProvider;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -32,12 +40,13 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.AuthProvider;
 import java.util.HashMap;
 import java.util.Map;
 
 public class CustomerSettingActivity extends AppCompatActivity {
 
-    private Button mConfirm, mBack;
+    private Button mConfirm, mBack, mDelete;
     private EditText mNameField, mPhoneField;
     private ImageView mProfileImage;
 
@@ -51,6 +60,8 @@ public class CustomerSettingActivity extends AppCompatActivity {
 
     private Uri resultUri;
 
+    FirebaseUser firebaseUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +72,7 @@ public class CustomerSettingActivity extends AppCompatActivity {
         mConfirm = findViewById(R.id.confirm);
         mBack = findViewById(R.id.back);
 
+        mDelete = findViewById(R.id.delete);
         mNameField = findViewById(R.id.name);
         mPhoneField = findViewById(R.id.phone);
 
@@ -74,6 +86,17 @@ public class CustomerSettingActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 saveUserInformation();
+            }
+        });
+
+        mDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteRegisteredUser();
+                Intent intent = new Intent(CustomerSettingActivity.this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                finish();
             }
         });
 
@@ -93,6 +116,23 @@ public class CustomerSettingActivity extends AppCompatActivity {
                 startActivityForResult(intent, 1);
             }
         });
+    }
+
+    private void deleteRegisteredUser() {
+
+
+        DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(userId);
+        if (driverRef != null){
+            driverRef.removeValue();
+        }
+
+        FirebaseAuth.getInstance().getCurrentUser().delete();
+        FirebaseAuth.getInstance().signOut();
+        Intent intent = new Intent(CustomerSettingActivity.this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        finish();
+
     }
 
     private void getUserInfo(){
