@@ -93,9 +93,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/carView"
-                    android:layout_margin="10sp"
+                    android:layout_marginLeft="30dp"
+                    android:layout_marginRight="30dp"
                     android:background="@drawable/bt_uifb"
-                    android:text="Set location on map"
+                    android:text="Add location"
                     android:textAllCaps="false" />
             </RelativeLayout>
 
@@ -173,7 +174,8 @@
                         android:id="@+id/bottomDrawer"
                         android:layout_width="match_parent"
                         android:layout_height="45dp"
-                        android:layout_margin="10dp"
+                        android:layout_marginLeft="30dp"
+                        android:layout_marginRight="30dp"
                         android:background="@drawable/bt_uifb"
                         android:text="Service Type"
                         android:textAllCaps="false"
