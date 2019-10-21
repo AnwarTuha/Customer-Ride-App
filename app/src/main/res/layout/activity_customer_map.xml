@@ -172,13 +172,13 @@
 
                     <Button
                         android:id="@+id/bottomDrawer"
-                        android:layout_width="match_parent"
-                        android:layout_height="45dp"
-                        android:layout_marginLeft="30dp"
-                        android:layout_marginRight="30dp"
-                        android:background="@drawable/bt_uifb"
-                        android:text="Service Type"
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
+                        android:layout_margin="10dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/round_button"
                         android:textAllCaps="false"
+                        android:text="B"
                         android:textSize="13sp"
                         android:padding="10dp"/>
 
@@ -197,7 +197,7 @@
                             android:layout_height="100dp"
                             android:layout_margin="10dp"
                             android:layout_weight="1"
-                            android:background="@drawable/bajjaj"
+                            android:background="@drawable/anex"
                             android:text="Bajjaj" />
 
                         <RadioButton

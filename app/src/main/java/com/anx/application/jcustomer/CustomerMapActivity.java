@@ -17,12 +17,14 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -39,6 +41,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
 
+import com.anx.application.jcustomer.HistoryRecyclerView.HistoryObject;
+import com.anx.application.jcustomer.HistoryRecyclerView.HistoryViewHolder;
 import com.bumptech.glide.Glide;
 import com.directions.route.AbstractRouting;
 import com.directions.route.Route;
@@ -60,6 +64,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -77,10 +82,12 @@ import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -93,8 +100,10 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static androidx.annotation.InspectableProperty.ValueType.COLOR;
@@ -125,7 +134,7 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
                     LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                     Log.i("Hello", "Location Changed");
                     mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-                    mMap.animateCamera(CameraUpdateFactory.zoomTo(17));
+                    mMap.moveCamera(CameraUpdateFactory.zoomTo(17));
 //                    mMap.addMarker(new MarkerOptions()
 //                        .position(latLng)
 ////                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
@@ -232,17 +241,33 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
             public void onClick(View v) {
                 if (mRadioGroup.getVisibility() == View.GONE) {
                     mRadioGroup.setVisibility(View.VISIBLE);
-                    int selectId = mRadioGroup.getCheckedRadioButtonId();
-                    final RadioButton radioButton = (RadioButton) findViewById(selectId);
-                    requestService = radioButton.getText().toString();
-                    mBottomDrawerButton.setText("Service type: " + requestService);
-                } else {
-                    mRadioGroup.setVisibility(View.GONE);
-                    int selectId = mRadioGroup.getCheckedRadioButtonId();
-                    final RadioButton radioButton = (RadioButton) findViewById(selectId);
-                    requestService = radioButton.getText().toString();
-                    mBottomDrawerButton.setText("Service type: " + requestService);
+                    mRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(RadioGroup group, int checkedId) {
+                            int selectId = mRadioGroup.getCheckedRadioButtonId();
+                            final RadioButton radioButton = (RadioButton) findViewById(selectId);
+                            requestService = radioButton.getText().toString();
+                            if (requestService.equals("Bajjaj")) {
+                                mBottomDrawerButton.setText("B");
+
+                            } else {
+                                mBottomDrawerButton.setText("T");
+                            }
+                            mRadioGroup.setVisibility(View.GONE);
+                        }
+                    });
                 }
+//                } else {
+//                    mRadioGroup.setVisibility(View.GONE);
+//                    int selectId = mRadioGroup.getCheckedRadioButtonId();
+//                    final RadioButton radioButton = (RadioButton) findViewById(selectId);
+//                    requestService = radioButton.getText().toString();
+//                    if (requestService.equals("Bajjaj")){
+//                        mBottomDrawerButton.setText("B");
+//                    } else {
+//                        mBottomDrawerButton.setText("T");
+//                    }
+//                }
             }
         });
 
@@ -293,6 +318,7 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
         autocompleteSupportFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(@NonNull Place place) {
+                mPlacePicker.setText("Add location");
                 destination = place.getName();
                 destinationLatLng = place.getLatLng();
                 Toast.makeText(CustomerMapActivity.this, destination + " " + destinationLatLng, Toast.LENGTH_SHORT).show();
@@ -544,6 +570,7 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
 
                 } else { // If there is no customer ride id
                     endRide();
+                    getLastDriveInfo();
                 }
             }
 
@@ -552,6 +579,31 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
 
             }
         });
+    }
+
+    private void getLastDriveInfo() {
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        Query lastQuery = databaseReference.child("Users").child("Customers").child(userId).child("history").getRef().orderByKey().limitToLast(1);
+        lastQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()){
+                    Intent intent = new Intent(CustomerMapActivity.this, HistorySingleActivity.class);
+                    Bundle b = new Bundle();
+                    b.putString("rideId", dataSnapshot.getValue().toString());
+                    intent.putExtras(b);
+                    startActivity(intent);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Handle possible errors.
+            }
+        });
+
     }
 
     private void endRide() { // customer cancels ride
@@ -680,7 +732,7 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
         getDriversAroundStarted = true;
         DatabaseReference driversLocation = FirebaseDatabase.getInstance().getReference().child("driversAvailable");
         GeoFire geoFire = new GeoFire(driversLocation);
-        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude()), 10000);
+        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude()), 1000);
         geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
             @Override
             public void onKeyEntered(String key, GeoLocation location) {
@@ -691,7 +743,7 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
                 }
 
                 LatLng driverLocation = new LatLng(location.latitude, location.longitude);
-                Marker mDriverMarker = mMap.addMarker(new MarkerOptions().position(driverLocation));
+                Marker mDriverMarker = mMap.addMarker(new MarkerOptions().position(driverLocation).icon(BitmapDescriptorFactory.fromResource(R.drawable.driver_around)));
 
                 mDriverMarker.setTag(key);
                 markerList.add(mDriverMarker);
@@ -829,8 +881,9 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
             if (resultCode == Activity.RESULT_OK && data != null) {
                 try {
                     AddressData addressData = data.getParcelableExtra(Constants.ADDRESS_INTENT);
+                    destination = addressData.toString();
                     destinationLatLng = new LatLng(addressData.getLatitude(), addressData.getLongitude());
-                    mPlacePicker.setText(addressData.toString());
+                    mPlacePicker.setText(addressData.toString() + "");
                     Toast.makeText(this, ""+destinationLatLng, Toast.LENGTH_SHORT).show();
                 } catch (Exception e) {
                     Log.e("CustomerMapActivity", e.getMessage());

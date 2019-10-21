@@ -114,12 +114,14 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
                         if (child.getKey().equals("rating")) {
                             mRatingBar.setRating(Integer.valueOf(child.getValue().toString()));
                         }
+                        if (child.getKey().equals("distance")) {
+                            rideDistance.setText(child.getValue().toString());
+                        }
                         if (child.getKey().equals("destination")) {
                             rideLocation.setText("Destination: " + child.getValue().toString());
                         }
                         if (child.getKey().equals("location")) {
                             pickupLatLng = new LatLng(Double.valueOf(child.child("from").child("lat").getValue().toString()), Double.valueOf(child.child("from").child("lng").getValue().toString()));
-
                             destinationLatLng = new LatLng(Double.valueOf(child.child("to").child("lat").getValue().toString()), Double.valueOf(child.child("to").child("lng").getValue().toString()));
                             if (destinationLatLng != new LatLng(0, 0)) {
                                 getRouteToMarker();

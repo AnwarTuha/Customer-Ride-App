@@ -42,8 +42,8 @@
         android:layout_height="182dp"
         android:src="@drawable/circle"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_marginLeft="-80dp"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="-80dp"
         android:layout_marginBottom="-30dp"/>
 
     <ScrollView
@@ -52,7 +52,7 @@
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:layout_marginBottom="20dp"
-        android:layout_marginTop="-25dp"
+        android:layout_marginTop="35dp"
         android:layout_below="@+id/bgHeader"
         android:elevation="5dp">
 
@@ -66,7 +66,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="10dp"
-                app:cardElevation="4dp">
+                app:cardElevation="4dp"
+                android:background="@drawable/bt_uifb">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -76,19 +77,17 @@
 
                     <de.hdodenhof.circleimageview.CircleImageView
                         android:id="@+id/profileImage"
-                        android:layout_width="60dp"
-                        android:layout_height="60dp"
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
                         android:layout_gravity="center"
-                        android:src="@drawable/ic_default_profile"
-                        app:civ_border_color="@color/colorPurple"
-                        app:civ_border_width="2dp" />
+                        android:src="@drawable/ic_default_profile" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_margin="10dp"
                         android:text="Email"
-                        android:textColor="@color/colorPurple"
+                        android:textColor="#48DBFB"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -98,14 +97,15 @@
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="10dp"
                         android:layout_marginRight="10dp"
-                        android:inputType="text" />
+                        android:inputType="text"
+                        android:hint="example@domain.com"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_margin="10dp"
                         android:text="Username"
-                        android:textColor="@color/colorPurple"
+                        android:textColor="#48DBFB"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -114,41 +114,47 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="10dp"
-                        android:layout_marginRight="10dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="10dp"
-                        android:text="Password"
-                        android:textColor="@color/colorPurple"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <EditText
-                        android:id="@+id/password"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
                         android:layout_marginRight="10dp"
-                        android:inputType="textPassword" />
+                        android:hint="Full name" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_margin="10dp"
                         android:text="Phone"
-                        android:textColor="@color/colorPurple"
+                        android:textColor="#48DBFB"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
-                    <EditText
-                        android:id="@+id/phone"
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:layout_marginRight="10dp"
-                        android:inputType="phone" />
+                        android:layout_height="50dp">
+
+                        <com.hbb20.CountryCodePicker
+                            android:id="@+id/ccp"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            app:ccp_textSize="16sp"
+                            app:ccp_autoDetectCountry="true"
+                            app:ccp_showFlag="true"
+                            app:ccp_showPhoneCode="true"
+                            app:ccp_showNameCode="false"/>
+
+                        <EditText
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="2"
+                            android:inputType="phone"
+                            android:layout_marginLeft="10dp"
+                            android:layout_marginRight="10dp"
+                            android:hint="Phone"
+                            android:textSize="16sp"
+                            android:id="@+id/phone"
+                            android:maxLength="10"/>
+
+                    </LinearLayout>
 
                 </LinearLayout>
 

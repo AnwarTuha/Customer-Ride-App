@@ -50,7 +50,7 @@
         private RelativeLayout rlayout;
         private Animation animation;
         private Button mRegister;
-        private EditText mEmail, mPassword, mUsername, mPhone;
+        private EditText mEmail, mUsername, mPhone;
         private ImageView mProfileImage;
         private String userId;
 
@@ -78,7 +78,6 @@
 
             mRegister = findViewById(R.id.register);
             mEmail = findViewById(R.id.email);
-            mPassword = findViewById(R.id.password);
             mUsername = findViewById(R.id.username);
             mPhone = findViewById(R.id.phone);
 
@@ -137,15 +136,12 @@
                 public void onClick(View v) {
                     if (TextUtils.isEmpty(mEmail.getText())) {
                         mEmail.setError("This field is required!");
-                    } else if (TextUtils.isEmpty(mPassword.getText())) {
-                        mPassword.setError("This field is required!");
                     } else if (TextUtils.isEmpty(mUsername.getText())) {
                         mUsername.setError("This field is required!");
                     } else if (TextUtils.isEmpty(mPhone.getText())) {
                         mPhone.setError("This field is required!");
                     } else {
                         final String email = mEmail.getText().toString();
-                        final String password = mPassword.getText().toString();
                         final String userName = mUsername.getText().toString();
                         final String phone = mPhone.getText().toString();
 
@@ -153,15 +149,16 @@
                         DatabaseReference current_user_db = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(userId);
                         mCustomerDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(userId);
                         current_user_db.setValue(true);
-                        saveUserInformation(userName, phone);
+                        saveUserInformation(userName, phone, email);
                     }
                 }
             });
         }
 
 
-                private void saveUserInformation(String userName, String phone) {
+                private void saveUserInformation(String userName, String phone, String email) {
                     Map userInfo = new HashMap();
+                    userInfo.put("email", email);
                     userInfo.put("name", userName);
                     userInfo.put("phone", phone);
                     mCustomerDatabase.updateChildren(userInfo);
