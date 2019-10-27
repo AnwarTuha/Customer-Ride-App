@@ -3,18 +3,23 @@ package com.anx.application.jcustomer;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -37,6 +42,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.hbb20.CountryCodePicker;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -47,16 +53,20 @@ import java.util.Map;
 public class CustomerSettingActivity extends AppCompatActivity {
 
     private Button mConfirm, mBack, mDelete;
-    private EditText mNameField, mPhoneField;
+    private EditText mNameField, mPhoneField, mEmailField;
     private ImageView mProfileImage;
+    private ProgressBar mEmailProgressBar, mNameProgressBar, mPhoneProgressBar;
 
     private FirebaseAuth mAuth;
     private DatabaseReference mCustomerDatabase;
 
     private String userId;
     private String mName;
+    private String mEmail;
     private String mPhone;
     private String mProfileImageUrl;
+
+    private CountryCodePicker ccp;
 
     private Uri resultUri;
 
@@ -70,11 +80,23 @@ public class CustomerSettingActivity extends AppCompatActivity {
         mProfileImage = (ImageView) findViewById(R.id.profileImage);
 
         mConfirm = findViewById(R.id.confirm);
-        mBack = findViewById(R.id.back);
-
+        Toolbar toolbar = findViewById(R.id.bgHeader);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mDelete = findViewById(R.id.delete);
         mNameField = findViewById(R.id.name);
         mPhoneField = findViewById(R.id.phone);
+        mEmailField = findViewById(R.id.email);
+
+        mEmailProgressBar = findViewById(R.id.emailProgress);
+        mEmailProgressBar.setVisibility(View.VISIBLE);
+
+        mNameProgressBar = findViewById(R.id.nameProgress);
+        mNameProgressBar.setVisibility(View.VISIBLE);
+
+        mPhoneProgressBar = findViewById(R.id.phoneProgress);
+        mPhoneProgressBar.setVisibility(View.VISIBLE);
 
         mAuth = FirebaseAuth.getInstance();
         userId = mAuth.getCurrentUser().getUid();
@@ -92,19 +114,23 @@ public class CustomerSettingActivity extends AppCompatActivity {
         mDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                deleteRegisteredUser();
-                Intent intent = new Intent(CustomerSettingActivity.this, MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
-                finish();
-            }
-        });
 
-        mBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-                return;
+                new AlertDialog.Builder(CustomerSettingActivity.this)
+                        .setTitle("Delete Account")
+                        .setMessage("are you sure you want to delete this account?")
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                deleteRegisteredUser();
+                                Intent intent = new Intent(CustomerSettingActivity.this, MainActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                startActivity(intent);
+                                finish();
+                            }
+                        })
+                        .setNegativeButton(android.R.string.no, null)
+                        .create()
+                        .show();
             }
         });
 
@@ -119,20 +145,16 @@ public class CustomerSettingActivity extends AppCompatActivity {
     }
 
     private void deleteRegisteredUser() {
-
-
-        DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(userId);
-        if (driverRef != null){
-            driverRef.removeValue();
+        DatabaseReference customerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(userId);
+        if (customerRef != null){
+            customerRef.removeValue();
+            FirebaseAuth.getInstance().getCurrentUser().delete();
+            FirebaseAuth.getInstance().signOut();
+            Intent intent = new Intent(CustomerSettingActivity.this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            finish();
         }
-
-        FirebaseAuth.getInstance().getCurrentUser().delete();
-        FirebaseAuth.getInstance().signOut();
-        Intent intent = new Intent(CustomerSettingActivity.this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
-        finish();
-
     }
 
     private void getUserInfo(){
@@ -141,13 +163,25 @@ public class CustomerSettingActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists() && dataSnapshot.getChildrenCount() > 0){
                     Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+
+                    mEmailProgressBar.setVisibility(View.VISIBLE);
+                    mNameProgressBar.setVisibility(View.VISIBLE);
+                    mPhoneProgressBar.setVisibility(View.VISIBLE);
+
                     if (map.get("name") != null){
                         mName = map.get("name").toString();
                         mNameField.setText(mName);
+                        mNameProgressBar.setVisibility(View.GONE);
+                    }
+                    if (map.get("email") != null){
+                        mEmail = map.get("email").toString();
+                        mEmailField.setText(mEmail);
+                        mEmailProgressBar.setVisibility(View.GONE);
                     }
                     if (map.get("phone") != null){
                         mPhone = map.get("phone").toString();
-                        mPhoneField.setText(mPhone);
+                        mPhoneField.setText(mPhone.replace("+251", ""));
+                        mPhoneProgressBar.setVisibility(View.GONE);
                     }
                     if (dataSnapshot.child("profileImageUrl").getValue() != null){
                         StorageReference storageReference =  FirebaseStorage.getInstance().getReference().child("profileImage").child(userId);
@@ -169,7 +203,9 @@ public class CustomerSettingActivity extends AppCompatActivity {
 
     private void saveUserInformation(){
         mName = mNameField.getText().toString();
-        mPhone = mPhoneField.getText().toString();
+        ccp = findViewById(R.id.ccp);
+
+        mPhone = "+" + ccp.getFullNumber() + mPhoneField.getText().toString().trim();
         Map userInfo = new HashMap();
         userInfo.put("name", mName);
         userInfo.put("phone", mPhone);
@@ -224,5 +260,11 @@ public class CustomerSettingActivity extends AppCompatActivity {
             mProfileImage.setImageURI(resultUri);
         }
     }
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+                onBackPressed();
+                return true;
+    }
+
 
 }

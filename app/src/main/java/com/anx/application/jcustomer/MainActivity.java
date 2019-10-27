@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -50,11 +51,11 @@ import androidx.appcompat.app.AppCompatDelegate;
 public class MainActivity extends AppCompatActivity {
 
     private Button mLogin, googleSignIn;
-    private ImageButton mRegister;
     private EditText mPhone, mPassword;
     private TextView tvLogin;
     private CountryCodePicker ccp;
     private String fullNumber;
+    private ProgressBar mLoginProgress;
 
     private static final int RC_SIGN_IN = 9001;
 
@@ -94,11 +95,12 @@ public class MainActivity extends AppCompatActivity {
 
         googleSignIn = findViewById(R.id.googleSignIn);
         mLogin = findViewById(R.id.login);
-        mRegister = findViewById(R.id.register);
         mPhone = findViewById(R.id.phone);
         mPassword = findViewById(R.id.password);
         tvLogin = findViewById(R.id.tvLogin);
         ccp = findViewById(R.id.ccp);
+        mLoginProgress = findViewById(R.id.loginProgress);
+        mLoginProgress.setVisibility(View.GONE);
 
         googleSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -108,48 +110,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Register User
-        mRegister.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                final String email = mEmail.getText().toString();
-//                final String password = mPassword.getText().toString();
-//                mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(MainActivity.this, new OnCompleteListener() {
-//                    @Override
-//                    public void onComplete(@NonNull Task task) {
-//                        if (!task.isSuccessful()){
-//                            Toast.makeText(MainActivity.this, "Sign Up Error", Toast.LENGTH_SHORT).show();
-//                        } else {
-//                            String userId = mAuth.getCurrentUser().getUid();
-//                            DatabaseReference current_user_db = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(userId);
-//                            current_user_db.setValue(true);
-//                        }
-//                    }
-//                });
-                Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
-
-                Pair[] pairs = new Pair[1];
-                pairs[0] = new Pair<View, String>(tvLogin, "tvLogin");
-                ActivityOptions activityOptions = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this, pairs);
-                startActivity(intent, activityOptions.toBundle());
-            }
-        });
-
-
         // Login with user account
         mLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                final String email = mEmail.getText().toString();
-//                final String password = mPassword.getText().toString();
-//                mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(MainActivity.this, new OnCompleteListener<AuthResult>() {
-//                    @Override
-//                    public void onComplete(@NonNull Task<AuthResult> task) {
-//                        if (!task.isSuccessful()){
-//                            Toast.makeText(MainActivity.this, "Login Error", Toast.LENGTH_SHORT).show();
-//                        }
-//                    }
-//                });
+
+                mLoginProgress.setVisibility(View.VISIBLE);
             if (mPhone.getText().toString().trim().isEmpty() || mPhone.getText().toString().trim().length() < 9){
                 mPhone.setError("Valid number is required");
                 mPhone.requestFocus();
@@ -160,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, VerifyPhoneActivity.class);
             intent.putExtra("phoneNumber", fullNumber);
             startActivity(intent);
+            mLoginProgress.setVisibility(View.GONE);
             return;
             }
         });

@@ -29,10 +29,14 @@
         <item name="colorControlNormal">@color/colorWhite</item>
     </style>
 
+    <style name="ToolbarThemeBlack" parent="@style/ThemeOverlay.AppCompat.ActionBar">
+        <item name="colorControlNormal">@android:color/black</item>
+    </style>
+
     <style name="Theme.DoNotDim" parent="android:Theme">
         <item name="android:backgroundDimEnabled">false</item>
     </style>
-    
+
     <style name="SplashScreen" parent="Theme.AppCompat.Light.NoActionBar">
 
         <item name="android:windowBackground">@drawable/background_splashscreen</item>

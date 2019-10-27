@@ -23,6 +23,11 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.concurrent.TimeUnit;
 
@@ -41,6 +46,7 @@ public class VerifyPhoneActivity extends AppCompatActivity {
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallback;
 
     private int APP_START = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,18 +71,18 @@ public class VerifyPhoneActivity extends AppCompatActivity {
         info = findViewById(R.id.info);
 
         phoneNumber = getIntent().getStringExtra("phoneNumber");
-        info.setText("Code sent to " + phoneNumber +" via SMS, enter the code below");
+        info.setText("We have sent a verification Code to " + phoneNumber + " via SMS, enter the code below...");
         Toast.makeText(VerifyPhoneActivity.this, "Code is Sent", Toast.LENGTH_SHORT).show();
 
         verify.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (otp.getText().toString().equals("")){
+                if (otp.getText().toString().equals("")) {
                     otp.setError("Check SMS for code");
                     otp.requestFocus();
                     return;
                 } else {
-                    if (btnType == 0){
+                    if (btnType == 0) {
                         PhoneAuthProvider.getInstance().verifyPhoneNumber(
                                 phoneNumber,
                                 60,
@@ -88,11 +94,11 @@ public class VerifyPhoneActivity extends AppCompatActivity {
                     } else {
                         verify.setEnabled(false);
                         String verificationCode = otp.getText().toString();
-                        try{
+                        try {
                             PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationId, verificationCode);
                             signInWithPhoneAuthCredential(credential);
-                        } catch (Exception e){
-                            Toast.makeText(VerifyPhoneActivity.this, ""+e.getMessage(), Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {
+                            Toast.makeText(VerifyPhoneActivity.this, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     }
                 }
@@ -102,12 +108,13 @@ public class VerifyPhoneActivity extends AppCompatActivity {
         mCallback = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             @Override
             public void onVerificationCompleted(@NonNull PhoneAuthCredential phoneAuthCredential) {
+                otp.setText(verificationId);
                 signInWithPhoneAuthCredential(phoneAuthCredential);
             }
 
             @Override
             public void onVerificationFailed(@NonNull FirebaseException e) {
-                if (e instanceof FirebaseAuthInvalidCredentialsException){
+                if (e instanceof FirebaseAuthInvalidCredentialsException) {
                     Toast.makeText(VerifyPhoneActivity.this, "Invlaid code Entered", Toast.LENGTH_SHORT).show();
                 } else if (e instanceof FirebaseTooManyRequestsException) {
                     Toast.makeText(VerifyPhoneActivity.this, "SMS quota for this user is exceeded", Toast.LENGTH_SHORT).show();
@@ -126,35 +133,64 @@ public class VerifyPhoneActivity extends AppCompatActivity {
 
     }
 
-    private void signInWithPhoneAuthCredential(PhoneAuthCredential credential){
+    private void signInWithPhoneAuthCredential(PhoneAuthCredential credential) {
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()){
+                        if (task.isSuccessful()) {
                             Toast.makeText(VerifyPhoneActivity.this, "Sign in with credential Successful", Toast.LENGTH_SHORT).show();
-                            boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
-                            Log.e("isNew", "" + isNew);
-                            if (isNew){
-                                Toast.makeText(VerifyPhoneActivity.this, "New User", Toast.LENGTH_SHORT).show();
-                                Intent intent = new Intent(VerifyPhoneActivity.this, RegisterActivity.class);
-                                intent.putExtra("phoneNumber", phoneNumber);
-                                startActivity(intent);
-                                finish();
-                            } else {
-                                Toast.makeText(VerifyPhoneActivity.this, "Nebar user", Toast.LENGTH_SHORT).show();
-                                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                                if (user != null){
-                                    Intent intent = new Intent(VerifyPhoneActivity.this, CustomerMapActivity.class);
-                                    startActivity(intent);
-                                    finish();
+                            String userId = task.getResult().getUser().getUid();
+                            DatabaseReference current_user_db = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(userId);
+
+                            current_user_db.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    if (dataSnapshot.exists()){
+                                        Toast.makeText(VerifyPhoneActivity.this, "Nebar user", Toast.LENGTH_SHORT).show();
+                                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                                        if (user != null) {
+                                            Intent intent = new Intent(VerifyPhoneActivity.this, CustomerMapActivity.class);
+                                            startActivity(intent);
+                                            finish();
+                                        }
+                                    } else {
+                                        Toast.makeText(VerifyPhoneActivity.this, "New User", Toast.LENGTH_SHORT).show();
+                                        Intent intent = new Intent(VerifyPhoneActivity.this, RegisterActivity.class);
+                                        intent.putExtra("phoneNumber", phoneNumber.replace("+251", ""));
+                                        startActivity(intent);
+                                        finish();
+                                    }
                                 }
-                            }
-                        } else {
-                            Toast.makeText(VerifyPhoneActivity.this, "Sign in with credential failed, " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                            if (task.getException() instanceof FirebaseAuthInvalidCredentialsException){
-                                Toast.makeText(VerifyPhoneActivity.this, "Entered Code is invalid", Toast.LENGTH_SHORT).show();
-                            }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                }
+                            });
+
+//                            boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
+//                            Log.e("isNew", "" + isNew);
+//                            if (isNew) {
+//                                Toast.makeText(VerifyPhoneActivity.this, "New User", Toast.LENGTH_SHORT).show();
+//                                Intent intent = new Intent(VerifyPhoneActivity.this, RegisterActivity.class);
+//                                intent.putExtra("phoneNumber", phoneNumber.replace("+251", ""));
+//                                startActivity(intent);
+//                                finish();
+//                            } else {
+//                                Toast.makeText(VerifyPhoneActivity.this, "Nebar user", Toast.LENGTH_SHORT).show();
+//                                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+//                                if (user != null) {
+//                                    Intent intent = new Intent(VerifyPhoneActivity.this, CustomerMapActivity.class);
+//                                    startActivity(intent);
+//                                    finish();
+//                                }
+//                            }
+//                        } else {
+//                            Toast.makeText(VerifyPhoneActivity.this, "Sign in with credential failed, " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+//                            if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
+//                                Toast.makeText(VerifyPhoneActivity.this, "Entered Code is invalid", Toast.LENGTH_SHORT).show();
+//                            }
                         }
                     }
                 });
@@ -164,9 +200,8 @@ public class VerifyPhoneActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if (APP_START == 0){
+        if (APP_START == 0) {
             final String phoneNumber = getIntent().getStringExtra("phoneNumber");
-
             PhoneAuthProvider.getInstance().verifyPhoneNumber(
                     phoneNumber,
                     60,

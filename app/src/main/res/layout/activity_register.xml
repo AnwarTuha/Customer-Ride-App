@@ -182,6 +182,15 @@
                     android:textColor="@color/colorWhite"
                     android:background="@drawable/bg_ui"/>
 
+                <ProgressBar
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/signup_progress"
+                    style="?android:attr/progressBarStyleSmall"
+                    android:layout_alignTop="@id/register"
+                    android:layout_alignBottom="@id/register"
+                    android:layout_alignEnd="@id/register" />
+
             </RelativeLayout>
 
         </RelativeLayout>

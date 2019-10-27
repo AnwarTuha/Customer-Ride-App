@@ -2,11 +2,15 @@ package com.anx.application.jcustomer;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.text.format.DateFormat;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 
 import com.anx.application.jcustomer.HistoryRecyclerView.HistoryAdapter;
 import com.anx.application.jcustomer.HistoryRecyclerView.HistoryObject;
@@ -27,6 +31,8 @@ public class HistoryActivity extends AppCompatActivity {
     private RecyclerView.Adapter mHistoryAdapter;
     private RecyclerView.LayoutManager mHistoryLayoutManager;
 
+    private ProgressBar mHistoryProgress;
+
     private String customerOrDriver, userId;
 
 
@@ -34,6 +40,14 @@ public class HistoryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
+
+        Toolbar toolbar = findViewById(R.id.toolBarHeader);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        mHistoryProgress = findViewById(R.id.history_progress);
+        mHistoryProgress.setVisibility(View.VISIBLE);
 
         mHistoryRecyclerView = findViewById(R.id.historyRecyclerView);
         mHistoryRecyclerView.setNestedScrollingEnabled(false);
@@ -84,6 +98,7 @@ public class HistoryActivity extends AppCompatActivity {
                     HistoryObject obj = new HistoryObject(rideId, getDate(timeStamp));
                     resultHistory.add(obj);
                     mHistoryAdapter.notifyDataSetChanged();
+                    mHistoryProgress.setVisibility(View.GONE);
                 }
             }
             @Override
@@ -92,6 +107,13 @@ public class HistoryActivity extends AppCompatActivity {
             }
         });
     }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        onBackPressed();
+        return true;
+    }
+
 
     private String getDate(Long timeStamp) {
         Calendar cal = Calendar.getInstance(Locale.getDefault());

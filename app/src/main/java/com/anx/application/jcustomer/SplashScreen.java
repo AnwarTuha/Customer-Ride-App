@@ -17,6 +17,8 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.io.IOException;
+
 import androidx.annotation.ColorRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -78,6 +80,23 @@ public class SplashScreen extends AppCompatActivity {
                 .getNetworkInfo(ConnectivityManager.TYPE_WIFI) != null && connectivityManager
                 .getNetworkInfo(ConnectivityManager.TYPE_WIFI)
                 .getState() == NetworkInfo.State.CONNECTED)) {
+
+            Runtime runtime = Runtime.getRuntime();
+            try {
+
+                Process ipProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8");
+                int     exitValue = ipProcess.waitFor();
+                return (exitValue == 0);
+
+            } catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+            catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+
             return true;
         } else {
             return false;

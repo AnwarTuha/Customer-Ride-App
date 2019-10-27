@@ -13,6 +13,7 @@ import androidx.fragment.app.FragmentActivity;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -20,12 +21,15 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.provider.Settings;
 import android.text.format.DateFormat;
 import android.util.Log;
+import android.util.TimeUtils;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -36,10 +40,10 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RatingBar;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toolbar;
 
 import com.anx.application.jcustomer.HistoryRecyclerView.HistoryObject;
 import com.anx.application.jcustomer.HistoryRecyclerView.HistoryViewHolder;
@@ -76,7 +80,10 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.LocationRestriction;
 import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.RectangularBounds;
+import com.google.android.libraries.places.api.model.TypeFilter;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
@@ -105,6 +112,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static androidx.annotation.InspectableProperty.ValueType.COLOR;
 
@@ -115,30 +123,39 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
     LocationRequest mLocationRequest;
     SupportMapFragment mapFragment;
     PlacesClient placesClient;
-    Marker customMarker;
     GeoQuery geoQuery;
-    StorageReference storageReference;
-    String imageURL;
     boolean getDriversAroundStarted = false;
     List<Marker> markerList = new ArrayList<Marker>();
     private DrawerLayout drawer;
     private List<Polyline> polylines;
     private FusedLocationProviderClient mFusedLocationClient;
     private GoogleMap mMap;
+    private boolean cameraSet = false;
+    private LinearLayout mRideInfo;
+
+    private int BUTTON_STATUS;
+
+
     LocationCallback mLocationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             for (Location location : locationResult.getLocations()) {
                 if (getApplicationContext() != null) {
                     mLastLocation = location;
-                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    final LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                     Log.i("Hello", "Location Changed");
-                    mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-                    mMap.moveCamera(CameraUpdateFactory.zoomTo(17));
-//                    mMap.addMarker(new MarkerOptions()
-//                        .position(latLng)
-////                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
-//                        .title("You"));
+                    if (!cameraSet){
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+                        cameraSet = true;
+                    }
+
+                    mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+                        @Override
+                        public boolean onMyLocationButtonClick() {
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+                            return true;
+                        }
+                    });
 
                     if (!getDriversAroundStarted) {
                         getDriversAround();
@@ -154,7 +171,7 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
     private ImageView mDriverProfileImage, mActionBarImage;
     private LinearLayout mDriverInfo;
     private Button mLogout, mRequest, mSettings, mHistory, mBottomDrawerButton, mPlacePicker;
-    private TextView mDriverName, mDriverPhone, mDriverCar, mFullName, mPhoneNumber;
+    private TextView mDriverName, mDriverPhone, mDriverCar, mFullName, mPhoneNumber, mRideFare, mRideTime;
     private RadioGroup mRadioGroup;
     private RatingBar mRatingBar;
     private LatLng pickLocationLatlng;
@@ -166,7 +183,10 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
     private ValueEventListener driverLocationRefListener;
     private DatabaseReference driveHasEndedRef;
     private ValueEventListener driveHasEndedRefListener;
+    private View mapView;
+    double fare;
 
+    AutocompleteSupportFragment autocompleteSupportFragment;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -174,6 +194,25 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
 
         polylines = new ArrayList<>();
 
+
+        LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if (!lm.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                !lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            // Build the alert dialog
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Location Services Not Active");
+            builder.setMessage("Please enable Location Services and GPS");
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    // Show location settings when the user acknowledges the alert dialog
+                    Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    startActivity(intent);
+                }
+            });
+            Dialog alertDialog = builder.create();
+            alertDialog.setCanceledOnTouchOutside(false);
+            alertDialog.show();
+        }
         androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolBar);
         setSupportActionBar(toolbar);
 
@@ -192,11 +231,11 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
 
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
+        mapView = mapFragment.getView();
         mapFragment.getMapAsync(this);
 
         destinationLatLng = new LatLng(0.0, 0.0);
 
-//        mHistory = findViewById(R.id.history);
         mBottomDrawerButton = findViewById(R.id.bottomDrawer);
         mDriverInfo = findViewById(R.id.driverInfo);
         mDriverProfileImage = findViewById(R.id.driverProfileImage);
@@ -204,17 +243,24 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
         mDriverPhone = (TextView) findViewById(R.id.driverPhone);
         mDriverCar = (TextView) findViewById(R.id.driverCar);
         mRadioGroup = findViewById(R.id.radioGroup);
-        mRadioGroup.check(R.id.Bajjaj);
+        mRadioGroup.check(R.id.taxi);
         mRatingBar = findViewById(R.id.ratingBar);
         mPlacePicker = findViewById(R.id.setLocationMap);
+        mRideFare = findViewById(R.id.ride_fare);
+        mRideTime = findViewById(R.id.ride_time);
+        mRideInfo = findViewById(R.id.ride_info);
 
-        final LayoutInflater factory = getLayoutInflater();
+        View v = navigationView.getHeaderView(0);
 
-        final View textEntryView = factory.inflate(R.layout.nav_header, null);
 
-        mActionBarImage = (ImageView) textEntryView.findViewById(R.id.profileImage);
-        mFullName = (TextView) textEntryView.findViewById(R.id.nav_name);
-        mPhoneNumber = (TextView) textEntryView.findViewById(R.id.nav_phone);
+        mActionBarImage = v.findViewById(R.id.profileImage);
+        mFullName = v.findViewById(R.id.nav_name);
+        mPhoneNumber = v.findViewById(R.id.nav_phone);
+
+        getUserInformation();
+
+
+
         String api_key = "AIzaSyBSVxzRAiYvKc-3-4AaKi8G0-tht285aHA";// for searching destination
 
         if (!Places.isInitialized()) {
@@ -230,7 +276,6 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
                         .showLatLong(true)
                         .build(CustomerMapActivity.this);
                 startActivityForResult(intent, Constants.PLACE_PICKER_REQUEST);
-                Toast.makeText(CustomerMapActivity.this, "The people", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -248,26 +293,24 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
                             final RadioButton radioButton = (RadioButton) findViewById(selectId);
                             requestService = radioButton.getText().toString();
                             if (requestService.equals("Bajjaj")) {
-                                mBottomDrawerButton.setText("B");
-
+                                mBottomDrawerButton.setText("Service type: Bajjaj");
                             } else {
-                                mBottomDrawerButton.setText("T");
+                                mBottomDrawerButton.setText("Service type: Taxi");
                             }
                             mRadioGroup.setVisibility(View.GONE);
                         }
                     });
+                } else {
+                    mRadioGroup.setVisibility(View.GONE);
+                    int selectId = mRadioGroup.getCheckedRadioButtonId();
+                    final RadioButton radioButton = (RadioButton) findViewById(selectId);
+                    requestService = radioButton.getText().toString();
+                    if (requestService.equals("Bajjaj")){
+                        mBottomDrawerButton.setText("Service type: Bajjaj");
+                    } else {
+                        mBottomDrawerButton.setText("Service tpe: Taxi");
+                    }
                 }
-//                } else {
-//                    mRadioGroup.setVisibility(View.GONE);
-//                    int selectId = mRadioGroup.getCheckedRadioButtonId();
-//                    final RadioButton radioButton = (RadioButton) findViewById(selectId);
-//                    requestService = radioButton.getText().toString();
-//                    if (requestService.equals("Bajjaj")){
-//                        mBottomDrawerButton.setText("B");
-//                    } else {
-//                        mBottomDrawerButton.setText("T");
-//                    }
-//                }
             }
         });
 
@@ -279,42 +322,53 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
                 if (requestBol) {
                     endRide();
                 } else {
-                    int selectId = mRadioGroup.getCheckedRadioButtonId();
-                    final RadioButton radioButton = (RadioButton) findViewById(selectId);
+                    if (destinationLatLng.latitude == 0.0 && destinationLatLng.longitude == 0.0){
+                        Toast.makeText(CustomerMapActivity.this, ""+destinationLatLng, Toast.LENGTH_SHORT).show();
+                        new AlertDialog.Builder(CustomerMapActivity.this)
+                                .setTitle("Destination Empty")
+                                .setMessage("Please search for a destination or add it using 'Add location'")
+                                .setPositiveButton(android.R.string.yes, null)
+                                .create()
+                                .show();
+                    } else {
+                        mRideInfo.setVisibility(View.GONE);
+                        int selectId = mRadioGroup.getCheckedRadioButtonId();
+                        final RadioButton radioButton = (RadioButton) findViewById(selectId);
 
-                    if (radioButton.getText() == null) {
-                        Toast.makeText(CustomerMapActivity.this, "please check a vehicle type", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    requestService = radioButton.getText().toString();
-                    mBottomDrawerButton.setText(requestService);
-                    requestBol = true;
-                    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    DatabaseReference ref = FirebaseDatabase.getInstance().getReference("customerRequest");
-
-                    GeoFire geoFire = new GeoFire(ref);
-                    geoFire.setLocation(userId, new GeoLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude()), new GeoFire.CompletionListener() {
-                        @Override
-                        public void onComplete(String key, DatabaseError error) {
-                            Log.i("Last Location", "" + mLastLocation.getLatitude() + " : " + mLastLocation.getLongitude());
+                        if (radioButton.getText() == null) {
+                            Toast.makeText(CustomerMapActivity.this, "please check a vehicle type", Toast.LENGTH_SHORT).show();
+                            return;
                         }
-                    });
 
-                    pickUpLocation = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-                    pickupMarker = mMap.addMarker(new MarkerOptions().position(pickUpLocation).title("Pickup Here"));
-                    Log.i("gettingDriver", "getting driver...");
-                    mRequest.setText("Getting your driver...");
+                        requestService = radioButton.getText().toString();
+                        mBottomDrawerButton.setText(requestService);
+                        requestBol = true;
+                        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("customerRequest");
+                        GeoFire geoFire = new GeoFire(ref);
+                        geoFire.setLocation(userId, new GeoLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude()), new GeoFire.CompletionListener() {
+                            @Override
+                            public void onComplete(String key, DatabaseError error) {
+                                Log.i("Last Location", "" + mLastLocation.getLatitude() + " : " + mLastLocation.getLongitude());
+                            }
+                        });
 
-                    getClosestDriver();
+                        pickUpLocation = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+                        pickupMarker = mMap.addMarker(new MarkerOptions().position(pickUpLocation).title("Pickup Here"));
+                        Log.i("gettingDriver", "getting driver...");
+                        mRequest.setText("Requesting driver... | Tap to cancel");
+                        BUTTON_STATUS = 1;
+                        getClosestDriver();
+                    }
                 }
             }
         });
 
-        AutocompleteSupportFragment autocompleteSupportFragment = (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+        autocompleteSupportFragment = (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
         assert autocompleteSupportFragment != null;
         autocompleteSupportFragment.setPlaceFields(Arrays.asList(Place.Field.NAME, Place.Field.LAT_LNG));
-        autocompleteSupportFragment.setHint("Where to...");
+        autocompleteSupportFragment.setHint("search drop off...");
+        autocompleteSupportFragment.setCountry("ET");
         autocompleteSupportFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(@NonNull Place place) {
@@ -322,6 +376,13 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
                 destination = place.getName();
                 destinationLatLng = place.getLatLng();
                 Toast.makeText(CustomerMapActivity.this, destination + " " + destinationLatLng, Toast.LENGTH_SHORT).show();
+                getRouteToMarker(destinationLatLng);
+                if (polylines.size() > 0) {
+                    for (Polyline poly : polylines) {
+                        poly.remove();
+                    }
+                }
+                getRideInfo(destinationLatLng);
                 Log.i("placeName", place.getName());
             }
 
@@ -330,9 +391,53 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
                 Log.i("ErrorOccurred", "an error occurred" + status);
             }
         });
+    }
+
+    private void getRideInfo(LatLng destinationLatLng) {
+
+        mRideInfo.setVisibility(View.VISIBLE);
+
+        pickLocationLatlng = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+        Location pickUp = new Location(LocationManager.GPS_PROVIDER);
+        pickUp.setLatitude(pickLocationLatlng.latitude);
+        pickUp.setLongitude(pickLocationLatlng.longitude);
+
+        Location dropOff = new Location(LocationManager.GPS_PROVIDER);
+        dropOff.setLatitude(destinationLatLng.latitude);
+        dropOff.setLongitude(destinationLatLng.longitude);
+
+        DecimalFormat df = new DecimalFormat("#.#");
+        df.setRoundingMode(RoundingMode.CEILING);
+
+        double rideDistance = Double.parseDouble(df.format(pickUp.distanceTo(dropOff) / 1000));
+
+        Toast.makeText(this, rideDistance+"", Toast.LENGTH_SHORT).show();
 
 
-        getUserInformation();
+        if (mBottomDrawerButton.getText().equals("Service type: Bajjaj")) {
+
+            int time =  (int) (rideDistance/40) * 1000;
+            fare = (rideDistance * 13) + 15;
+            mRideTime.setText("approx. time to location: " + secToTime(time));
+            mRideFare.setText("Fare: " + df.format(fare) + " Birr");
+
+        } else {
+            int time = (int) (rideDistance/60) * 1000;
+            fare = (rideDistance * 13) + 40;
+            mRideTime.setText("approx. time to location: " + secToTime(time));
+            mRideFare.setText("Fare: " + df.format(fare) + " Birr");
+        }
+    }
+
+    String secToTime(int sec) {
+        int second = sec % 60;
+        int minute = sec / 60;
+        if (minute >= 60) {
+            int hour = minute / 60;
+            minute %= 60;
+            return hour + ":" + (minute < 10 ? "0" + minute : minute) + ":" + (second < 10 ? "0" + second : second);
+        }
+        return minute + ":" + (second < 10 ? "0" + second : second);
     }
 
     @Override
@@ -346,6 +451,7 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
 
     private void getRouteToMarker(LatLng pickupLatLng) {
         if (pickupLatLng != null && mLastLocation != null) {
+            markerList.removeAll(markerList);
             Routing routing = new Routing.Builder()
                     .key("AIzaSyBSVxzRAiYvKc-3-4AaKi8G0-tht285aHA")
                     .travelMode(AbstractRouting.TravelMode.DRIVING)
@@ -408,10 +514,10 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
                                 if (driverFound) {
                                     return;
                                 }
-                                if (driverMap.get("service").equals(requestService)) {
+                                if (driverMap.get("service").equals(requestService) && !(Double.parseDouble(driverMap.get("quota").toString()) < fare)) {
                                     driverFound = true;
                                     driverFoundId = dataSnapshot.getKey();
-                                    Log.i("driverLocation", "Looking for driver location...");
+                                    Log.i("driverLocation", "Looking for driver location... | Tap to cancel");
                                     DatabaseReference driverRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(driverFoundId).child("customerRequest");
                                     String customerId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                                     HashMap map = new HashMap();
@@ -424,7 +530,8 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
                                     getDriverLocation();
                                     getDriverInfo();
                                     getHasDriveEnded();
-                                    mRequest.setText("Looking for driver location...");
+                                    mRequest.setText("Looking for driver location... | Tap to cancel");
+                                    BUTTON_STATUS = 2;
                                 }
                             }
                         }
@@ -497,10 +604,12 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
                     float distance = locPickup.distanceTo(locDriver)/1000;
                     if (distance < 0.1) {
                         mRequest.setText("Your Driver is here");
+                        BUTTON_STATUS = 3;
                     } else {
                         DecimalFormat df = new DecimalFormat("#.#");
                         df.setRoundingMode(RoundingMode.CEILING);
                         mRequest.setText("Your driver is coming: " + (df.format(distance)) + " kms away");
+                        BUTTON_STATUS = 4;
                     }
                     mDriverMarker = mMap.addMarker(new MarkerOptions().position(driverLatLng).title("Your Driver"));
                 }
@@ -582,7 +691,6 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
     }
 
     private void getLastDriveInfo() {
-
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         Query lastQuery = databaseReference.child("Users").child("Customers").child(userId).child("history").getRef().orderByKey().limitToLast(1);
@@ -592,6 +700,7 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
                 if (dataSnapshot.exists()){
                     Intent intent = new Intent(CustomerMapActivity.this, HistorySingleActivity.class);
                     Bundle b = new Bundle();
+                    Toast.makeText(CustomerMapActivity.this, ""+dataSnapshot.getValue().toString(), Toast.LENGTH_SHORT).show();
                     b.putString("rideId", dataSnapshot.getValue().toString());
                     intent.putExtras(b);
                     startActivity(intent);
@@ -608,7 +717,7 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
 
     private void endRide() { // customer cancels ride
         requestBol = false;
-        mPlacePicker.setText("Add location");
+        mPlacePicker.setText("set drop off location");
 
         geoQuery.removeAllListeners();
         Log.i("cancelRequest", "GeoQuery listeners removed");
@@ -630,6 +739,17 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
         driverFound = false;
         radius = 1;
 
+        if (polylines.size() > 0) {
+            for (Polyline poly : polylines) {
+                poly.remove();
+            }
+        }
+
+        autocompleteSupportFragment.setText("");
+
+
+        getDriversAround();
+
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("customerRequest");
 
@@ -643,13 +763,16 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
 
         if (pickupMarker != null) {
             pickupMarker.remove();
-            if (mDriverMarker != null) {
-                mDriverMarker.remove();
-            }
             Log.i("pickupMarker", "Marker removed");
         }
+        if (mDriverMarker != null) {
+            mDriverMarker.remove();
+        }
 
-        mRequest.setText("Call Driver");
+
+        destinationLatLng = new LatLng(0.0, 0.0);
+
+        mRequest.setText("Request Driver");
 
 
         mDriverInfo.setVisibility(View.GONE);
@@ -662,16 +785,20 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-//        try{
-//            boolean success = googleMap.setMapStyle(
-//                    MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle));
-//
-//            if (!success){
-//                Toast.makeText(this, "Style parsing failed", Toast.LENGTH_SHORT).show();
-//            }
-//        } catch (Resources.NotFoundException e){
-//            Toast.makeText(this, ""+e, Toast.LENGTH_SHORT).show();
-//        }
+
+        if (mapView != null &&
+                mapView.findViewById(Integer.parseInt("1")) != null) {
+            // Get the button view
+            View locationButton = ((View) mapView.findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("2"));
+            // and next place it, on bottom right (as Google Maps app)
+            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
+                    locationButton.getLayoutParams();
+            // position on right bottom
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+            layoutParams.setMargins(0, 0, 600, 600);
+        }
+
 
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(1000);
@@ -812,12 +939,27 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
 
     private void logOut() {
 
-        FirebaseAuth.getInstance().signOut();
-        Intent intent = new Intent(CustomerMapActivity.this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
-        finish();
-        return;
+        new AlertDialog.Builder(CustomerMapActivity.this)
+                .setTitle("Log-out")
+                .setMessage("Are you sure you want to log-out?")
+
+                // Specifying a listener allows you to take an action before dismissing the dialog.
+                // The dialog is automatically dismissed when a dialog button is clicked.
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        FirebaseAuth.getInstance().signOut();
+                        Intent intent = new Intent(CustomerMapActivity.this, MainActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                        finish();
+                        return;
+                    }
+                })
+
+                // A null listener allows the button to dismiss the dialog and take no further action.
+                .setNegativeButton(android.R.string.no, null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
     }
 
     @Override
@@ -834,6 +976,8 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
     public void onRoutingSuccess(ArrayList<Route> route, int shortestRouteindex) {
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
+        pickUpLocation = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+
         builder.include(pickUpLocation);
         builder.include(destinationLatLng);
         LatLngBounds bounds = builder.build();
@@ -845,6 +989,8 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
         mMap.animateCamera(cameraUpdate);
 
         mMap.addMarker(new MarkerOptions().position(pickUpLocation).title("Pickup Location"));
+        mMap.addMarker(new MarkerOptions().position(destinationLatLng).title("Destination")).remove();
+
         mMap.addMarker(new MarkerOptions().position(destinationLatLng).title("Destination"));
 
         if (polylines.size() > 0) {
@@ -881,9 +1027,11 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
             if (resultCode == Activity.RESULT_OK && data != null) {
                 try {
                     AddressData addressData = data.getParcelableExtra(Constants.ADDRESS_INTENT);
-                    destination = addressData.toString();
+                    destination = addressData.component3().get(0).getAddressLine(0);
                     destinationLatLng = new LatLng(addressData.getLatitude(), addressData.getLongitude());
-                    mPlacePicker.setText(addressData.toString() + "");
+                    getRouteToMarker(destinationLatLng);
+                    getRideInfo(destinationLatLng);
+                    mPlacePicker.setText(addressData.component3().get(0).getAddressLine(0) + "");
                     Toast.makeText(this, ""+destinationLatLng, Toast.LENGTH_SHORT).show();
                 } catch (Exception e) {
                     Log.e("CustomerMapActivity", e.getMessage());

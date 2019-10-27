@@ -142,22 +142,6 @@
 
                     </LinearLayout>
 
-                    <!--<TextView-->
-                        <!--android:layout_width="wrap_content"-->
-                        <!--android:layout_height="wrap_content"-->
-                        <!--android:text="Password"-->
-                        <!--android:layout_margin="10dp"-->
-                        <!--android:textStyle="bold"-->
-                        <!--android:textColor="@color/colorPurple"-->
-                        <!--android:textSize="14sp"/>-->
-
-                    <!--<EditText-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_height="wrap_content"-->
-                        <!--android:layout_marginLeft="10dp"-->
-                        <!--android:layout_marginRight="10dp"-->
-                        <!--android:id="@+id/password"/>-->
-
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
@@ -172,17 +156,33 @@
                 android:layout_marginTop="-50dp"
                 android:layout_marginLeft="35dp"
                 android:layout_marginRight="35dp">
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
 
-                <Button
-                    android:id="@+id/login"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:elevation="10dp"
-                    android:text="Login"
-                    android:textAllCaps="false"
-                    android:layout_alignParentBottom="true"
-                    android:textColor="@color/colorWhite"
-                    android:background="@drawable/bg_ui"/>
+                    <Button
+                        android:id="@+id/login"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:elevation="10dp"
+                        android:text="Login"
+                        android:textAllCaps="false"
+                        android:layout_alignParentBottom="true"
+                        android:textColor="@color/colorWhite"
+                        android:background="@drawable/bg_ui"/>
+
+                    <ProgressBar
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/loginProgress"
+                        style="?android:attr/progressBarStyleSmall"
+                        android:layout_alignTop="@id/login"
+                        android:layout_alignBottom="@id/login"
+                        android:layout_alignEnd="@id/login"
+                        android:layout_marginRight="20dp"/>
+
+                </RelativeLayout>
+
 
             </RelativeLayout>
 
@@ -194,13 +194,6 @@
                 android:layout_marginTop="-20dp"
                 android:layout_marginRight="-20dp"
                 android:elevation="10dp">
-
-                <ImageButton
-                    android:id="@+id/register"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:background="@drawable/bg_ui"
-                    android:src="@drawable/ic_add" />
             </RelativeLayout>
 
             <!--<TextView-->

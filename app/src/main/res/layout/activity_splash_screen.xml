@@ -5,8 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".SplashScreen"
-    android:background="@drawable/background_splashscreen"
-    android:theme="@style/AppTheme.FullScreen"
+    android:theme="@style/SplashScreen"
     android:id="@+id/linear">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:background="@drawable/background_splashscreen"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -16,6 +16,7 @@
         tools:remove="android:maxSdkVersion" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CALL_PHONE"/>
 
     <application
         android:allowBackup="true"
@@ -44,10 +45,15 @@
         <activity
             android:name=".CustomerMapActivity"
             android:label="@string/title_activity_customer_map"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".CustomerSettingActivity" />
-        <activity android:name=".HistoryActivity" />
-        <activity android:name=".HistorySingleActivity" />
+            android:theme="@style/AppTheme.NoActionBar">
+
+        </activity>
+        <activity android:name=".CustomerSettingActivity"
+                  android:theme="@style/AppTheme.FullScreen"/>
+        <activity android:name=".HistoryActivity"
+            android:theme="@style/AppTheme.FullScreen"/>
+        <activity android:name=".HistorySingleActivity"
+            android:theme="@style/AppTheme.FullScreen"/>
         <activity
             android:name=".RegisterActivity"
             android:theme="@style/AppTheme.FullScreen" />
@@ -55,13 +61,13 @@
             android:name=".VerifyPhoneActivity"
             android:theme="@style/AppTheme.FullScreen" />
         <activity android:name=".SplashScreen"
-            android:theme="@style/SplashScreen">
+            android:theme="@style/AppTheme.FullScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>

@@ -2,11 +2,14 @@ package com.anx.application.jcustomer;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RatingBar;
@@ -49,7 +52,7 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
 
     private String rideId, currentUserId, customerId, driverId, userDriverOrCustomer;
 
-    private TextView rideLocation, rideDistance, rideDate, userName, userPhone;
+    private TextView rideLocation, rideDistance, rideDate, userName, userPhone, fare;
     private ImageView userImage;
     private RatingBar mRatingBar;
 
@@ -71,11 +74,17 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
         mMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mMapFragment.getMapAsync(this);
 
+        Toolbar toolbar = findViewById(R.id.toolBar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         rideLocation = findViewById(R.id.rideLocation);
         rideDistance = findViewById(R.id.rideDistance);
         rideDate = findViewById(R.id.rideDate);
         userName = findViewById(R.id.userName);
         userPhone = findViewById(R.id.userPhone);
+        fare = findViewById(R.id.ridePrice);
 
         mRatingBar = findViewById(R.id.ratingBar);
 
@@ -114,8 +123,12 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
                         if (child.getKey().equals("rating")) {
                             mRatingBar.setRating(Integer.valueOf(child.getValue().toString()));
                         }
+                        if (child.getKey().equals("fare")) {
+                            fare.setText("Fare: "+ child.getValue().toString());
+                        }
+
                         if (child.getKey().equals("distance")) {
-                            rideDistance.setText(child.getValue().toString());
+                            rideDistance.setText("Traveled distance (in kms): "+child.getValue().toString());
                         }
                         if (child.getKey().equals("destination")) {
                             rideLocation.setText("Destination: " + child.getValue().toString());
@@ -158,10 +171,10 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
                 if (dataSnapshot.exists()) {
                     Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
                     if (map.get("name") != null) {
-                        userName.setText(map.get("name").toString());
+                        userName.setText("Driver name: " + map.get("name").toString());
                     }
                     if (map.get("phone") != null) {
-                        userPhone.setText(map.get("phone").toString());
+                        userPhone.setText("Driver phone "+map.get("phone").toString());
                     }
                     if (map.get("profileImageUrl") != null) {
                         Log.i("anwar", "" + map.get("profileImageUrl"));
@@ -226,7 +239,7 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
         LatLngBounds bounds = builder.build();
 
         int width = getResources().getDisplayMetrics().widthPixels;
-        int padding = (int) (width * 0.2);
+        int padding = (int) (width * 0.1);
 
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, padding);
         mMap.animateCamera(cameraUpdate);
@@ -256,6 +269,12 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
 
             Toast.makeText(getApplicationContext(), "Route " + (i + 1) + ": distance - " + route.get(i).getDistanceValue() + ": duration - " + route.get(i).getDurationValue(), Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        onBackPressed();
+        return true;
     }
 
     @Override

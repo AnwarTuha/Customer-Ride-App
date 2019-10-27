@@ -21,6 +21,7 @@
     import android.widget.EditText;
     import android.widget.ImageButton;
     import android.widget.ImageView;
+    import android.widget.ProgressBar;
     import android.widget.RelativeLayout;
     import android.widget.Toast;
 
@@ -37,6 +38,7 @@
     import com.google.firebase.storage.FirebaseStorage;
     import com.google.firebase.storage.StorageReference;
     import com.google.firebase.storage.UploadTask;
+    import com.hbb20.CountryCodePicker;
 
     import java.io.ByteArrayOutputStream;
     import java.io.IOException;
@@ -52,7 +54,10 @@
         private Button mRegister;
         private EditText mEmail, mUsername, mPhone;
         private ImageView mProfileImage;
+        private ProgressBar mSignupProgress;
         private String userId;
+
+        private CountryCodePicker ccp;
 
         private Uri resultUri;
         String image_path;
@@ -76,10 +81,15 @@
 
             mAuth = FirebaseAuth.getInstance();
 
+            mSignupProgress = findViewById(R.id.signup_progress);
+            mSignupProgress.setVisibility(View.GONE);
+
             mRegister = findViewById(R.id.register);
             mEmail = findViewById(R.id.email);
             mUsername = findViewById(R.id.username);
             mPhone = findViewById(R.id.phone);
+
+            ccp = findViewById(R.id.ccp);
 
             String phoneNumber = getIntent().getStringExtra("phoneNumber");
 
@@ -143,13 +153,20 @@
                     } else {
                         final String email = mEmail.getText().toString();
                         final String userName = mUsername.getText().toString();
-                        final String phone = mPhone.getText().toString();
+
+                        if (mPhone.getText().toString().trim().isEmpty() || mPhone.getText().toString().trim().length() < 9){
+                            mPhone.setError("Valid number is required");
+                            mPhone.requestFocus();
+                            return;
+                        }
+
+                        final String fullNumber = "+" + ccp.getFullNumber() + mPhone.getText().toString().trim();
 
                         userId = mAuth.getCurrentUser().getUid();
                         DatabaseReference current_user_db = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(userId);
                         mCustomerDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(userId);
                         current_user_db.setValue(true);
-                        saveUserInformation(userName, phone, email);
+                        saveUserInformation(userName, fullNumber, email);
                     }
                 }
             });
@@ -163,6 +180,7 @@
                     userInfo.put("phone", phone);
                     mCustomerDatabase.updateChildren(userInfo);
 
+                    mSignupProgress.setVisibility(View.VISIBLE);
 
                     if (resultUri != null) {
                         final StorageReference filePath = FirebaseStorage.getInstance().getReference().child("profileImage").child(userId);
@@ -195,11 +213,13 @@
                                 newImage.put("profileImageUrl", downloadUri.toString());
                                 mCustomerDatabase.updateChildren(newImage);
                                 Toast.makeText(getApplicationContext(), "Image Uploaded Successfully", Toast.LENGTH_LONG).show();
+                                mSignupProgress.setVisibility(View.GONE);
                                 finish();
                                 return;
                             }
                         });
                     } else {
+                        mSignupProgress.setVisibility(View.GONE);
                         finish();
                     }
                 }
@@ -239,7 +259,17 @@
                     super.onStop();
                     mAuth.removeAuthStateListener(firebaseAuthListener);
                 }
+
+        @Override
+        public void onBackPressed() {
+            FirebaseAuth.getInstance().getCurrentUser().delete();
+            FirebaseAuth.getInstance().signOut();
+            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            finish();
         }
+    }
 
 
 

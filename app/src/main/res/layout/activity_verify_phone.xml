@@ -57,7 +57,7 @@
             android:id="@+id/rlayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="100dp">
+            android:layout_marginTop="150dp">
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cv"
@@ -85,11 +85,12 @@
                     <EditText
                         android:hint="SMS code"
                         android:textSize="16sp"
+                        android:maxLength="6"
                         android:id="@+id/otp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:layout_marginRight="10dp"
+                        android:layout_marginLeft="80dp"
+                        android:layout_marginRight="80dp"
                         android:inputType="text" />
 
                 </LinearLayout>
