@@ -5,6 +5,7 @@
     import androidx.appcompat.app.AppCompatActivity;
 
     import android.app.Activity;
+    import android.app.ProgressDialog;
     import android.content.Intent;
     import android.graphics.Bitmap;
     import android.net.Uri;
@@ -66,6 +67,8 @@
         private DatabaseReference mCustomerDatabase;
         private FirebaseAuth.AuthStateListener firebaseAuthListener;
 
+        private ProgressDialog dialog;
+
         @Override
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
@@ -80,6 +83,8 @@
             rlayout.setAnimation(animation);
 
             mAuth = FirebaseAuth.getInstance();
+
+
 
             mSignupProgress = findViewById(R.id.signup_progress);
             mSignupProgress.setVisibility(View.GONE);
@@ -144,9 +149,7 @@
             mRegister.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (TextUtils.isEmpty(mEmail.getText())) {
-                        mEmail.setError("This field is required!");
-                    } else if (TextUtils.isEmpty(mUsername.getText())) {
+                    if (TextUtils.isEmpty(mUsername.getText())) {
                         mUsername.setError("This field is required!");
                     } else if (TextUtils.isEmpty(mPhone.getText())) {
                         mPhone.setError("This field is required!");
@@ -167,6 +170,8 @@
                         mCustomerDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(userId);
                         current_user_db.setValue(true);
                         saveUserInformation(userName, fullNumber, email);
+                        dialog = ProgressDialog.show(RegisterActivity.this, "",
+                                "Saving. Please wait...", true);
                     }
                 }
             });
@@ -179,8 +184,6 @@
                     userInfo.put("name", userName);
                     userInfo.put("phone", phone);
                     mCustomerDatabase.updateChildren(userInfo);
-
-                    mSignupProgress.setVisibility(View.VISIBLE);
 
                     if (resultUri != null) {
                         final StorageReference filePath = FirebaseStorage.getInstance().getReference().child("profileImage").child(userId);
@@ -200,7 +203,7 @@
                         uploadTask.addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(getApplicationContext(), "Upload Failed!", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(), "Image Upload Failed!", Toast.LENGTH_LONG).show();
                                 finish();
                                 return;
                             }
@@ -213,13 +216,12 @@
                                 newImage.put("profileImageUrl", downloadUri.toString());
                                 mCustomerDatabase.updateChildren(newImage);
                                 Toast.makeText(getApplicationContext(), "Image Uploaded Successfully", Toast.LENGTH_LONG).show();
-                                mSignupProgress.setVisibility(View.GONE);
+                                dialog.cancel();
                                 finish();
                                 return;
                             }
                         });
                     } else {
-                        mSignupProgress.setVisibility(View.GONE);
                         finish();
                     }
                 }

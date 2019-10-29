@@ -42,6 +42,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -97,6 +99,8 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
     }
 
     private void getRideInformation() {
+        final DecimalFormat df = new DecimalFormat("#.#");
+        df.setRoundingMode(RoundingMode.CEILING);
         historyRideInfoDb.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -124,7 +128,7 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
                             mRatingBar.setRating(Integer.valueOf(child.getValue().toString()));
                         }
                         if (child.getKey().equals("fare")) {
-                            fare.setText("Fare: "+ child.getValue().toString());
+                            fare.setText("Fare: Birr. "+ df.format(Double.parseDouble(child.getValue().toString())));
                         }
 
                         if (child.getKey().equals("distance")) {
@@ -164,6 +168,7 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
     }
 
     private void getUserInformation(String userType, String userId) {
+        Toast.makeText(this, "Hello from get user info", Toast.LENGTH_LONG).show();
         DatabaseReference mUserDb = FirebaseDatabase.getInstance().getReference().child("Users").child(userType).child(userId);
         mUserDb.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -174,10 +179,9 @@ public class HistorySingleActivity extends AppCompatActivity implements OnMapRea
                         userName.setText("Driver name: " + map.get("name").toString());
                     }
                     if (map.get("phone") != null) {
-                        userPhone.setText("Driver phone "+map.get("phone").toString());
+                        userPhone.setText("Driver phone: " + map.get("phone").toString());
                     }
                     if (map.get("profileImageUrl") != null) {
-                        Log.i("anwar", "" + map.get("profileImageUrl"));
                         StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("profileImage").child(customerId);
                         storageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override

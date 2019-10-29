@@ -21,6 +21,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
@@ -90,12 +92,23 @@ public class HistoryActivity extends AppCompatActivity {
                 if (dataSnapshot.exists()){
                     String rideId = dataSnapshot.getKey();
                     Long timeStamp = 0L;
+                    String rideDestination = "";
+                    String rideCost = "";
+
+                    DecimalFormat df = new DecimalFormat("#.#");
+                    df.setRoundingMode(RoundingMode.CEILING);
                     for (DataSnapshot child : dataSnapshot.getChildren()){
                         if (child.getKey().equals("timeStamp")){
                             timeStamp = Long.valueOf(child.getValue().toString());
                         }
+                        if (child.getKey().equals("destination")){
+                            rideDestination = child.getValue().toString();
+                        }
+                        if (child.getKey().equals("fare")){
+                            rideCost = df.format(Double.parseDouble(child.getValue().toString()));
+                        }
                     }
-                    HistoryObject obj = new HistoryObject(rideId, getDate(timeStamp));
+                    HistoryObject obj = new HistoryObject(rideId, getDate(timeStamp), rideDestination, rideCost);
                     resultHistory.add(obj);
                     mHistoryAdapter.notifyDataSetChanged();
                     mHistoryProgress.setVisibility(View.GONE);

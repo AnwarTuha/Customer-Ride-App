@@ -7,6 +7,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -72,6 +73,8 @@ public class CustomerSettingActivity extends AppCompatActivity {
 
     FirebaseUser firebaseUser;
 
+    private ProgressDialog dialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,10 +125,6 @@ public class CustomerSettingActivity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 deleteRegisteredUser();
-                                Intent intent = new Intent(CustomerSettingActivity.this, MainActivity.class);
-                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                startActivity(intent);
-                                finish();
                             }
                         })
                         .setNegativeButton(android.R.string.no, null)
@@ -202,6 +201,8 @@ public class CustomerSettingActivity extends AppCompatActivity {
     }
 
     private void saveUserInformation(){
+        dialog = ProgressDialog.show(CustomerSettingActivity.this, "",
+                "Saving. Please wait...", true);
         mName = mNameField.getText().toString();
         ccp = findViewById(R.id.ccp);
 
@@ -242,11 +243,15 @@ public class CustomerSettingActivity extends AppCompatActivity {
                     newImage.put("profileImageUrl", downloadUri.toString());
                     mCustomerDatabase.updateChildren(newImage);
                     Toast.makeText(getApplicationContext(), "Image Uploaded Successfully", Toast.LENGTH_LONG).show();
+                    dialog.cancel();
                     finish();
                     return;
                 }
             });
         } else {
+            if (dialog.isShowing()){
+                dialog.cancel();
+            }
             finish();
         }
     }

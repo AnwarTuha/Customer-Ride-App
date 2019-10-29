@@ -320,7 +320,17 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
             @Override
             public void onClick(View v) {
                 if (requestBol) {
-                    endRide();
+                    new AlertDialog.Builder(CustomerMapActivity.this)
+                            .setTitle("Cancel Request.")
+                            .setMessage("Are you sure you want to cancel drive?")
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    endRide();
+                                }
+                            })
+                            .create()
+                            .show();
                 } else {
                     if (destinationLatLng.latitude == 0.0 && destinationLatLng.longitude == 0.0){
                         Toast.makeText(CustomerMapActivity.this, ""+destinationLatLng, Toast.LENGTH_SHORT).show();
@@ -409,7 +419,7 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
         DecimalFormat df = new DecimalFormat("#.#");
         df.setRoundingMode(RoundingMode.CEILING);
 
-        double rideDistance = Double.parseDouble(df.format(pickUp.distanceTo(dropOff) / 1000));
+        double rideDistance = Double.parseDouble(df.format(pickUp.distanceTo(dropOff)));
 
         Toast.makeText(this, rideDistance+"", Toast.LENGTH_SHORT).show();
 
@@ -417,14 +427,14 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
         if (mBottomDrawerButton.getText().equals("Service type: Bajjaj")) {
 
             int time =  (int) (rideDistance/40) * 1000;
-            fare = (rideDistance * 13) + 15;
-            mRideTime.setText("approx. time to location: " + secToTime(time));
+            fare = ((rideDistance/ 1000) * 13) + 15;
+            mRideTime.setText("approx. arrival time: " + secToTime(time));
             mRideFare.setText("Fare: " + df.format(fare) + " Birr");
 
         } else {
             int time = (int) (rideDistance/60) * 1000;
-            fare = (rideDistance * 13) + 40;
-            mRideTime.setText("approx. time to location: " + secToTime(time));
+            fare = ((rideDistance/ 1000) * 13) + 40;
+            mRideTime.setText("approx. arrival time: " + secToTime(time));
             mRideFare.setText("Fare: " + df.format(fare) + " Birr");
         }
     }
@@ -451,7 +461,6 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
 
     private void getRouteToMarker(LatLng pickupLatLng) {
         if (pickupLatLng != null && mLastLocation != null) {
-            markerList.removeAll(markerList);
             Routing routing = new Routing.Builder()
                     .key("AIzaSyBSVxzRAiYvKc-3-4AaKi8G0-tht285aHA")
                     .travelMode(AbstractRouting.TravelMode.DRIVING)
@@ -636,8 +645,16 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
                     if (dataSnapshot.child("phone").getValue() != null) {
                         mDriverPhone.setText("Driver Phone: " + dataSnapshot.child("phone").getValue());
                     }
-                    if (dataSnapshot.child("car").getValue() != null) {
-                        mDriverCar.setText("Car Type: " + dataSnapshot.child("car").getValue());
+                    if (dataSnapshot.child("cartype").getValue() != null) {
+                        String carColor = "";
+                        String carPlate = "";
+                        if (dataSnapshot.child("color").getValue() != null){
+                            carColor = dataSnapshot.child("color").getValue().toString();
+                        }
+                        if (dataSnapshot.child("plate").getValue() != null){
+                            carPlate = dataSnapshot.child("plate").getValue().toString();
+                        }
+                        mDriverCar.setText("Vehicle : " + carColor + " " + dataSnapshot.child("cartype").getValue() + ", " + carPlate);
                     }
                     if (dataSnapshot.child("profileImageUrl").getValue() != null) {
                         StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("profileImage").child(driverFoundId);
@@ -691,6 +708,8 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
     }
 
     private void getLastDriveInfo() {
+
+
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         Query lastQuery = databaseReference.child("Users").child("Customers").child(userId).child("history").getRef().orderByKey().limitToLast(1);
@@ -698,10 +717,14 @@ public class CustomerMapActivity extends AppCompatActivity implements RoutingLis
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()){
+                    String key = "";
+                    for (DataSnapshot history : dataSnapshot.getChildren()){
+                        key = history.getKey();
+                    }
                     Intent intent = new Intent(CustomerMapActivity.this, HistorySingleActivity.class);
                     Bundle b = new Bundle();
-                    Toast.makeText(CustomerMapActivity.this, ""+dataSnapshot.getValue().toString(), Toast.LENGTH_SHORT).show();
-                    b.putString("rideId", dataSnapshot.getValue().toString());
+                    Toast.makeText(CustomerMapActivity.this, ""+dataSnapshot.getChildren(), Toast.LENGTH_SHORT).show();
+                    b.putString("rideId", key);
                     intent.putExtras(b);
                     startActivity(intent);
                 }

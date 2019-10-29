@@ -7,6 +7,8 @@ import android.view.ViewGroup;
 
 import com.anx.application.jcustomer.R;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -35,8 +37,11 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull HistoryViewHolder holder, int position) {
-        holder.rideId.setText(itemList.get(position).getRideId());
-        holder.time.setText(itemList.get(position).getTime());
+
+        holder.rideId.setText("Ride id: "+itemList.get(position).getRideId());
+        holder.time.setText("Date: "+itemList.get(position).getTime());
+        holder.rideDestination.setText("Destination: " + itemList.get(position).getRideDestination());
+        holder.rideCost.setText("Fare: Birr. "+ itemList.get(position).getRideCost());
     }
 
     @Override

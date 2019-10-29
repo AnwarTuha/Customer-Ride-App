@@ -2,11 +2,13 @@ package com.anx.application.jcustomer.HistoryRecyclerView;
 
 public class HistoryObject {
 
-    private String rideId, time;
+    private String rideId, time, rideDestination, rideCost;
 
-    public HistoryObject(String rideId, String time){
+    public HistoryObject(String rideId, String time, String rideDestination, String rideCost){
         this.rideId = rideId;
         this.time = time;
+        this.rideDestination = rideDestination;
+        this.rideCost = rideCost;
     }
 
     public String getRideId(){
@@ -23,4 +25,17 @@ public class HistoryObject {
         this.time = time;
     }
 
+    public String getRideDestination(){
+        return rideDestination;
+    }
+    public void setRideDestination(){
+        this.rideDestination = rideDestination;
+    }
+
+    public String getRideCost(){
+        return rideCost;
+    }
+    public void setRideCost(){
+        this.rideCost = rideCost;
+    }
 }

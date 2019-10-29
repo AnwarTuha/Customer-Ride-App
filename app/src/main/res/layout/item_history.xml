@@ -4,13 +4,14 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="20sp">
+    android:theme="@style/AppTheme.FullScreen">
 
    <androidx.cardview.widget.CardView
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
        android:textAlignment="center"
        app:cardCornerRadius="10dp"
+       android:layout_margin="15dp"
        android:elevation="4dp">
 
        <RelativeLayout
@@ -23,16 +24,35 @@
                android:layout_width="match_parent"
                android:layout_height="wrap_content"
                android:id="@+id/time"
-               android:padding="10dp"
+               android:padding="5dp"
                android:textSize="14sp"/>
 
            <TextView
                android:layout_width="match_parent"
                android:layout_height="wrap_content"
                android:id="@+id/rideId"
-               android:padding="10dp"
+               android:padding="5dp"
                android:layout_below="@+id/time"
                android:textSize="14sp"/>
+
+           <TextView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:id="@+id/destinationHistory"
+               android:padding="5dp"
+               android:layout_below="@+id/rideId"
+               android:textSize="18sp"
+               android:textStyle="bold" />
+
+           <TextView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:id="@+id/rideCost"
+               android:padding="5dp"
+               android:layout_below="@+id/destinationHistory"
+               android:textSize="18sp"
+               android:textStyle="bold" />
+
 
        </RelativeLayout>
 
