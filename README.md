@@ -1,5 +1,6 @@
-# jCustomer
-Jano Customer App
+# Customer Ride App
+
+Customer App for a Ride hailing Service
 
 This is an application created to serve as the driver side application for a Ride hailing service. 
 You can find the driver side at https://github.com/AnwarTuha/jDriver/
